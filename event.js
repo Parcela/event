@@ -5,30 +5,13 @@
 /**
  * Defines the Event-Class, which should be instantiated to get its functionality
  *
- *
- * @module core
- * @submodule core-event
- * @main core-event
- * @since 0.0.1
- *
  * <i>Copyright (c) 2014 Parcela - https://github.com/Parcela</i>
  * New BSD License - https://github.com/ItsAsbreuk/itsa-library/blob/master/LICENSE
  *
-*/
-
-/**
- * Defines the Event-Class, which should be instantiated to get its functionality
- *
- *
- * @module core-event
- * @submodule core-event-base
+ * @module event
  * @class Event
  * @constructor
  * @since 0.0.1
- *
- * <i>Copyright (c) 2014 Parcela - https://github.com/Parcela</i>
- * New BSD License - https://github.com/ItsAsbreuk/itsa-library/blob/master/LICENSE
- *
 */
 
 
@@ -568,7 +551,7 @@ Event = {
      * No need to `detach()` (unless you want to undescribe before the first event)
      *
      * @static
-     * @method onceAfter
+     * @method once
      * @param customEvent {String|Array} the custom-event (or Array of events) to subscribe to. CustomEvents should
      *        have the syntax: `emitterName:eventName`. Wildcard `*` may be used for both `emitterName` as well as `eventName`.
      *        If `emitterName` is not defined, `UI` is assumed.
