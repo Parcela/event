@@ -3,9 +3,9 @@
 var expect = require('chai').expect,
     should = require('chai').should(),
 
-    Event = require("../event"),
-    EventEmitter = require('../event/event-emitter.js'),
-    EventListener = require('../event/event-listener.js');
+    Event = require("../event.js"),
+    EventEmitter = require('../event-emitter.js'),
+    EventListener = require('../event-listener.js');
 
 EventEmitter.mergeInto(Event);
 EventListener.mergeInto(Event);
