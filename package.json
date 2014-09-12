@@ -41,7 +41,7 @@
 
 	"scripts": {
 		"pretest": "jshint ./*.js",
-		"test": "mocha tests/manual/*.js  && istanbul cover $(which _mocha) -- tests/manual/*.js",
+		"test": "mocha tests/*.js  && istanbul cover $(which _mocha) -- tests/*.js",
 		"lint": "jshint ./*.js"
 	},
 	"homepage": "http://Parcela.github.io",
