@@ -7,9 +7,6 @@ var expect = require('chai').expect,
     EventEmitter = require('../event-emitter.js'),
     EventListener = require('../event-listener.js');
 
-EventEmitter.mergeInto(Event);
-EventListener.mergeInto(Event);
-
 describe('Subscribers with filters', function () {
     // Code to execute before every test.
     beforeEach(function() {

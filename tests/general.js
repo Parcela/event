@@ -7,9 +7,6 @@ var expect = require('chai').expect,
     EventEmitter = require('../event-emitter.js'),
     EventListener = require('../event-listener.js');
 
-EventEmitter.mergeInto(Event);
-EventListener.mergeInto(Event);
-
 describe('General tests', function () {
 
     // Code to execute before every test.
@@ -457,6 +454,66 @@ describe('General tests', function () {
         Event.notify('red:save', function(ce) {}, Event);
         Event.emit('red:save');
         Event.unNotify('red:save'); // should not throw error
+    });
+
+    it('different beforesubscribers', function () {
+        var count = 0,
+            subscriber = {
+                o: Event,
+                cb: function(e) {
+                    count += 1;;
+                }
+            };
+        Event.before('red:save', function(e) {
+            throw new Error('default before-subscriber shouln\'t get invoked');
+        });
+        Event.after('red:save', function(e) {
+            count += 2;
+        });
+        Event.emit('red:save', null, [subscriber]).status.ok.should.be.true;
+        count.should.be.eql(3);
+    });
+
+    it('different aftersubscribers', function () {
+        var count = 0,
+            subscriber = {
+                o: Event,
+                cb: function(e) {
+                    count += 1;;
+                }
+            };
+        Event.before('red:save', function(e) {
+            count += 2;
+        });
+        Event.after('red:save', function(e) {
+            throw new Error('default after-subscriber shouln\'t get invoked');
+        });
+        Event.emit('red:save', null, null, [subscriber]).status.ok.should.be.true;
+        count.should.be.eql(3);
+    });
+
+    it('different before- and after-subscribers', function () {
+        var count = 0,
+            beforeSubscriber = {
+                o: Event,
+                cb: function(e) {
+                    count += 1;;
+                }
+            },
+            afterSubscriber = {
+                o: Event,
+                cb: function(e) {
+                    count += 2;;
+                }
+            };
+        Event.before('red:save', function(e) {
+            throw new Error('default before-subscriber shouln\'t get invoked');
+        });
+        Event.after('red:save', function(e) {
+            throw new Error('default after-subscriber shouln\'t get invoked');
+        });
+        Event.emit('red:save', null, [beforeSubscriber], [afterSubscriber]).status.ok.should.be.true;
+        count.should.be.eql(3);
     });
 
 });
