@@ -23,7 +23,7 @@ describe('Subscribers with filters', function () {
         Event.before(
             'red:save',
             function(e) {
-                e.extrafilter.should.be.equal(50);
+                expect(e.extrafilter).to.eql(50);
                 done();
             },
             redObject,
@@ -56,7 +56,7 @@ describe('Subscribers with filters', function () {
         Event.before(
             '*:save',
             function(e) {
-                e.extrafilter.should.be.equal(50);
+                expect(e.extrafilter).to.eql(50);
                 done();
             },
             redObject,
@@ -89,7 +89,7 @@ describe('Subscribers with filters', function () {
         Event.before(
             'red:*',
             function(e) {
-                e.extrafilter.should.be.equal(50);
+                expect(e.extrafilter).to.eql(50);
                 done();
             },
             redObject,
@@ -122,7 +122,7 @@ describe('Subscribers with filters', function () {
         Event.before(
             '*:*',
             function(e) {
-                e.extrafilter.should.be.equal(50);
+                expect(e.extrafilter).to.eql(50);
                 done();
             },
             redObject,

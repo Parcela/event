@@ -40,12 +40,12 @@ describe('Unsubscribed events', function () {
                 count = 0;
             Event.after('red:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, redObject);
             Event.before('red:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, redObject);
             Event.emit('red:save');
         });
@@ -55,28 +55,28 @@ describe('Unsubscribed events', function () {
                 count = 0;
             Event.after('red:save', function() {
                 count++;
-                count.should.be.equal(5);
+                expect(count).to.eql(5);
             }, redObject);
             Event.after('red:save', function() {
                 count++;
-                count.should.be.equal(4);
+                expect(count).to.eql(4);
             }, redObject, true);
             Event.after('red:save', function() {
                 count++;
-                count.should.be.equal(6);
+                expect(count).to.eql(6);
                 done();
             }, redObject);
             Event.before('red:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
             }, redObject);
             Event.before('red:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, redObject, true);
             Event.before('red:save', function() {
                 count++;
-                count.should.be.equal(3);
+                expect(count).to.eql(3);
             });
             Event.emit('red:save');
         });
@@ -119,7 +119,7 @@ describe('Unsubscribed events', function () {
         it('check passing through payload inside before-subscriber', function (done) {
             var redObject = {};
             Event.before('red:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             }, redObject);
             Event.emit('red:save', {a: 10});
@@ -127,7 +127,7 @@ describe('Unsubscribed events', function () {
         it('check passing through payload inside before-subscriber', function (done) {
             var redObject = {};
             Event.after('red:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             }, redObject);
             Event.emit('red:save', {a: 10});
@@ -136,11 +136,11 @@ describe('Unsubscribed events', function () {
             var redObject = {},
                 count = 0;
             Event.onceAfter('red:save', function(e) {
-                e.a.should.be.equal(15);
+                expect(e.a).to.eql(15);
                 done();
             }, redObject);
             Event.onceBefore('red:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 e.a = 15;
             }, redObject);
             Event.emit('red:save', {a: 10});
@@ -174,7 +174,7 @@ describe('Unsubscribed events', function () {
             }, redObject);
             Event.emit('red:save');
             setTimeout(function() {
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, 100);
         });
@@ -304,12 +304,12 @@ describe('Unsubscribed events', function () {
             greenObject.merge(Event.Emitter('green'));
             Event.after('green:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             });
             Event.before('green:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             });
             Event.emit(greenObject, 'save');
         });
@@ -319,28 +319,28 @@ describe('Unsubscribed events', function () {
             greenObject.merge(Event.Emitter('green'));
             Event.after('green:save', function() {
                 count++;
-                count.should.be.equal(5);
+                expect(count).to.eql(5);
             });
             Event.after('green:save', function() {
                 count++;
-                count.should.be.equal(4);
+                expect(count).to.eql(4);
             }, true);
             Event.after('green:save', function() {
                 count++;
-                count.should.be.equal(6);
+                expect(count).to.eql(6);
                 done();
             });
             Event.before('green:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
             });
             Event.before('green:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, true);
             Event.before('green:save', function() {
                 count++;
-                count.should.be.equal(3);
+                expect(count).to.eql(3);
             });
             Event.emit(greenObject, 'save');
         });
@@ -384,7 +384,7 @@ describe('Unsubscribed events', function () {
             var greenObject = {};
             greenObject.merge(Event.Emitter('green'));
             Event.before('green:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit(greenObject, 'save', {a: 10});
@@ -393,7 +393,7 @@ describe('Unsubscribed events', function () {
             var greenObject = {};
             greenObject.merge(Event.Emitter('green'));
             Event.after('green:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit(greenObject, 'save', {a: 10});
@@ -403,11 +403,11 @@ describe('Unsubscribed events', function () {
                 count = 0;
             greenObject.merge(Event.Emitter('green'));
             Event.after('green:save', function(e) {
-                e.a.should.be.equal(15);
+                expect(e.a).to.eql(15);
                 done();
             });
             Event.before('green:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 e.a = 15;
             });
             Event.emit(greenObject, 'save', {a: 10});
@@ -443,7 +443,7 @@ describe('Unsubscribed events', function () {
             });
             Event.emit(greenObject, 'save');
             setTimeout(function() {
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, 100);
         });
@@ -545,12 +545,12 @@ describe('Unsubscribed events', function () {
             blueObject.merge(Event.Listener);
             blueObject.after('blue:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             });
             blueObject.before('blue:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             });
             Event.emit('blue:save');
         });
@@ -560,28 +560,28 @@ describe('Unsubscribed events', function () {
             blueObject.merge(Event.Listener);
             blueObject.after('blue:save', function() {
                 count++;
-                count.should.be.equal(5);
+                expect(count).to.eql(5);
             });
             blueObject.after('blue:save', function() {
                 count++;
-                count.should.be.equal(4);
+                expect(count).to.eql(4);
             }, true);
             blueObject.after('blue:save', function() {
                 count++;
-                count.should.be.equal(6);
+                expect(count).to.eql(6);
                 done();
             });
             blueObject.before('blue:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
             });
             blueObject.before('blue:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, true);
             blueObject.before('blue:save', function() {
                 count++;
-                count.should.be.equal(3);
+                expect(count).to.eql(3);
             });
             Event.emit('blue:save');
         });
@@ -625,7 +625,7 @@ describe('Unsubscribed events', function () {
             var blueObject = {};
             blueObject.merge(Event.Listener);
             blueObject.onceBefore('blue7:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('blue7:save', {a: 10});
@@ -634,7 +634,7 @@ describe('Unsubscribed events', function () {
             var blueObject = {};
             blueObject.merge(Event.Listener);
             blueObject.onceAfter('blue8:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('blue8:save', {a: 10});
@@ -644,11 +644,11 @@ describe('Unsubscribed events', function () {
                 count = 0;
             blueObject.merge(Event.Listener);
             blueObject.onceAfter('blue9:save', function(e) {
-                e.a.should.be.equal(15);
+                expect(e.a).to.eql(15);
                 done();
             });
             blueObject.onceBefore('blue9:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 e.a = 15;
             });
             Event.emit('blue9:save', {a: 10});
@@ -684,7 +684,7 @@ describe('Unsubscribed events', function () {
             });
             Event.emit('blue11:save');
             setTimeout(function() {
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, 100);
         });
@@ -784,12 +784,12 @@ describe('Unsubscribed events', function () {
             purpleObject.merge(Event.Listener);
             purpleObject.onceAfter('purple3:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             });
             purpleObject.onceBefore('purple3:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             });
             Event.emit('purple3:save');
         });
@@ -799,28 +799,28 @@ describe('Unsubscribed events', function () {
             purpleObject.merge(Event.Listener);
             purpleObject.onceAfter('purple4:save', function() {
                 count++;
-                count.should.be.equal(5);
+                expect(count).to.eql(5);
             });
             purpleObject.onceAfter('purple4:save', function() {
                 count++;
-                count.should.be.equal(4);
+                expect(count).to.eql(4);
             }, true);
             purpleObject.onceAfter('purple4:save', function() {
                 count++;
-                count.should.be.equal(6);
+                expect(count).to.eql(6);
                 done();
             });
             purpleObject.onceBefore('purple4:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
             });
             purpleObject.onceBefore('purple4:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, true);
             purpleObject.onceBefore('purple4:save', function() {
                 count++;
-                count.should.be.equal(3);
+                expect(count).to.eql(3);
             });
             Event.emit('purple4:save');
         });
@@ -864,7 +864,7 @@ describe('Unsubscribed events', function () {
             var purpleObject = {};
             purpleObject.merge(Event.Listener);
             purpleObject.onceBefore('purple7:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('purple7:save', {a: 10});
@@ -873,7 +873,7 @@ describe('Unsubscribed events', function () {
             var purpleObject = {};
             purpleObject.merge(Event.Listener);
             purpleObject.onceAfter('purple8:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('purple8:save', {a: 10});
@@ -883,11 +883,11 @@ describe('Unsubscribed events', function () {
                 count = 0;
             purpleObject.merge(Event.Listener);
             purpleObject.onceAfter('purple9:save', function(e) {
-                e.a.should.be.equal(15);
+                expect(e.a).to.eql(15);
                 done();
             });
             purpleObject.onceBefore('purple9:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 e.a = 15;
             });
             Event.emit('purple9:save', {a: 10});
@@ -923,7 +923,7 @@ describe('Unsubscribed events', function () {
             });
             Event.emit('purple11:save');
             setTimeout(function() {
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, 100);
         });
@@ -1017,12 +1017,12 @@ describe('Unsubscribed events', function () {
             var count = 0;
             Event.onceAfter('orange3:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             });
             Event.onceBefore('orange3:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             });
             Event.emit('orange3:save');
         });
@@ -1030,28 +1030,28 @@ describe('Unsubscribed events', function () {
             var count = 0;
             Event.onceAfter('orange4:save', function() {
                 count++;
-                count.should.be.equal(5);
+                expect(count).to.eql(5);
             });
             Event.onceAfter('orange4:save', function() {
                 count++;
-                count.should.be.equal(4);
+                expect(count).to.eql(4);
             }, true);
             Event.onceAfter('orange4:save', function() {
                 count++;
-                count.should.be.equal(6);
+                expect(count).to.eql(6);
                 done();
             });
             Event.onceBefore('orange4:save', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
             });
             Event.onceBefore('orange4:save', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, true);
             Event.onceBefore('orange4:save', function() {
                 count++;
-                count.should.be.equal(3);
+                expect(count).to.eql(3);
             });
             Event.emit('orange4:save');
         });
@@ -1087,14 +1087,14 @@ describe('Unsubscribed events', function () {
         });
         it('check passing through payload inside before-subscriber', function (done) {
             Event.onceBefore('orange7:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('orange7:save', {a: 10});
         });
         it('check passing through payload inside before-subscriber', function (done) {
             Event.onceAfter('orange8:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('orange8:save', {a: 10});
@@ -1102,11 +1102,11 @@ describe('Unsubscribed events', function () {
         it('check passing through payload inside before-subscriber', function (done) {
             var count = 0;
             Event.onceAfter('orange9:save', function(e) {
-                e.a.should.be.equal(15);
+                expect(e.a).to.eql(15);
                 done();
             });
             Event.onceBefore('orange9:save', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 e.a = 15;
             });
             Event.emit('orange9:save', {a: 10});
@@ -1138,7 +1138,7 @@ describe('Unsubscribed events', function () {
             });
             Event.emit('orange11:save');
             setTimeout(function() {
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, 100);
         });
@@ -1216,12 +1216,12 @@ describe('Unsubscribed events', function () {
             var count = 0;
             Event.onceAfter('save3', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             });
             Event.onceBefore('save3', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             });
             Event.emit('UI:save3');
         });
@@ -1229,28 +1229,28 @@ describe('Unsubscribed events', function () {
             var count = 0;
             Event.onceAfter('save4', function() {
                 count++;
-                count.should.be.equal(5);
+                expect(count).to.eql(5);
             });
             Event.onceAfter('save4', function() {
                 count++;
-                count.should.be.equal(4);
+                expect(count).to.eql(4);
             }, true);
             Event.onceAfter('save4', function() {
                 count++;
-                count.should.be.equal(6);
+                expect(count).to.eql(6);
                 done();
             });
             Event.onceBefore('save4', function() {
                 count++;
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
             });
             Event.onceBefore('save4', function() {
                 count++;
-                count.should.be.equal(1);
+                expect(count).to.eql(1);
             }, true);
             Event.onceBefore('save4', function() {
                 count++;
-                count.should.be.equal(3);
+                expect(count).to.eql(3);
             });
             Event.emit('UI:save4');
         });
@@ -1286,14 +1286,14 @@ describe('Unsubscribed events', function () {
         });
         it('check passing through payload inside before-subscriber', function (done) {
             Event.onceBefore('save7', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('UI:save7', {a: 10});
         });
         it('check passing through payload inside before-subscriber', function (done) {
             Event.onceAfter('save8', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 done();
             });
             Event.emit('UI:save8', {a: 10});
@@ -1301,11 +1301,11 @@ describe('Unsubscribed events', function () {
         it('check passing through payload inside before-subscriber', function (done) {
             var count = 0;
             Event.onceAfter('save9', function(e) {
-                e.a.should.be.equal(15);
+                expect(e.a).to.eql(15);
                 done();
             });
             Event.onceBefore('save9', function(e) {
-                e.a.should.be.equal(10);
+                expect(e.a).to.eql(10);
                 e.a = 15;
             });
             Event.emit('UI:save9', {a: 10});
@@ -1337,7 +1337,7 @@ describe('Unsubscribed events', function () {
             });
             Event.emit('UI:save11');
             setTimeout(function() {
-                count.should.be.equal(2);
+                expect(count).to.eql(2);
                 done();
             }, 100);
         });
