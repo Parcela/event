@@ -20,12 +20,18 @@ require('lang-ext');
 
     "use strict";
 
-    global.Parcela || (global.Parcela={});
-    global.Parcela.modules || (global.Parcela.modules={});
+    if (!global._parcelaModules) {
+        Object.defineProperty(global, '_parcelaModules', {
+            configurable: false,
+            enumerable: false,
+            writable: false,
+            value: {} // `writable` is false means we cannot chance the value-reference, but we can change {} its members
+        });
+    }
+    global._parcelaModules.Event || (global._parcelaModules.Event = factory());
 
-    global.Parcela.modules.Event || (global.Parcela.modules.Event = factory());
+    module.exports = global._parcelaModules.Event;
 
-    module.exports = global.Parcela.modules.Event;
 }(typeof global !== 'undefined' ? global : /* istanbul ignore next */ this, function () {
 
     "use strict";
