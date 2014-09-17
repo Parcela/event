@@ -22,11 +22,11 @@ describe('Defined Custom Events', function () {
         var count = Object.keys(Event._ce).length;
         Event.defineEvent('red1:save1');
         Event.defineEvent('red1:save2');
-        Object.keys(Event._ce).length.should.be.equal(count+2);
+        (Object.keys(Event._ce).length===(count+2)).should.be.true;
         Event.undefEvent('red1:save1');
-        Object.keys(Event._ce).length.should.be.equal(count+1);
+        (Object.keys(Event._ce).length===(count+1)).should.be.true;
         Event.undefEvent('red1:save2');
-        Object.keys(Event._ce).length.should.be.equal(count);
+        (Object.keys(Event._ce).length===count).should.be.true;
     });
 
     it('consistancy Event._ce using undefAllEvents', function () {
@@ -34,11 +34,11 @@ describe('Defined Custom Events', function () {
         Event.defineEvent('red2a:save');
         Event.defineEvent('red2b:save');
         Event.defineEvent('red2b:save2');
-        Object.keys(Event._ce).length.should.be.equal(count+3);
+        (Object.keys(Event._ce).length===(count+3)).should.be.true;
         Event.undefAllEvents('red2b');
-        Object.keys(Event._ce).length.should.be.equal(count+1);
+        (Object.keys(Event._ce).length===(count+1)).should.be.true;
         Event.undefAllEvents('red2a');
-        Object.keys(Event._ce).length.should.be.equal(count);
+        (Object.keys(Event._ce).length===count).should.be.true;
     });
 
     it('consistancy Event._ce using undefAllEvents wildcard', function () {
@@ -46,9 +46,9 @@ describe('Defined Custom Events', function () {
         Event.defineEvent('red3a:save');
         Event.defineEvent('red3b:save');
         Event.defineEvent('red3b:save2');
-        Object.keys(Event._ce).length.should.be.equal(count+3);
+        (Object.keys(Event._ce).length===(count+3)).should.be.true;
         Event.undefAllEvents();
-        Object.keys(Event._ce).length.should.be.equal(0);
+        (Object.keys(Event._ce).length===0).should.be.true;
     });
 
     it('consistancy Event._ce using undefAllEvents wildcard leaving UI in tact', function () {
@@ -57,11 +57,11 @@ describe('Defined Custom Events', function () {
         Event.defineEvent('UI:save');
         Event.defineEvent('red4b:save');
         Event.defineEvent('red4b:save2');
-        Object.keys(Event._ce).length.should.be.equal(count+4);
+        (Object.keys(Event._ce).length===(count+4)).should.be.true;
         Event.undefAllEvents();
-        Object.keys(Event._ce).length.should.be.equal(1);
+        (Object.keys(Event._ce).length===1).should.be.true;
         Event.undefEvent('UI:save');
-        Object.keys(Event._ce).length.should.be.equal(0);
+        (Object.keys(Event._ce).length===0).should.be.true;
     });
 
     it('check defaultFn', function (done) {
@@ -76,7 +76,7 @@ describe('Defined Custom Events', function () {
     it('eventobject inside defaultFn', function (done) {
         var defFn = function(e) {
             Event.undefEvent('red6:save');
-            e.a.should.be.equal(10);
+            expect(e.a).to.eql(10);
             done();
         };
         Event.defineEvent('red6:save').defaultFn(defFn);
@@ -118,7 +118,7 @@ describe('Defined Custom Events', function () {
         Event.emit('red9:save', {silent: true});
         setTimeout(function(){
             Event.undefEvent('red9:save');
-            count.should.be.equal(2);
+            expect(count).to.eql(2);
             done();
         }, 25);
     });
@@ -133,7 +133,7 @@ describe('Defined Custom Events', function () {
             };
         Event.defineEvent('red10:save').defaultFn(defFn).preventedFn(preventedFn);
         Event.onceAfter('red10:save', function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             Event.undefEvent('red10:save');
             done();
         });
@@ -153,7 +153,7 @@ describe('Defined Custom Events', function () {
             e.preventDefault();
         });
         setTimeout(function() {
-            count.should.be.equal(10);
+            expect(count).to.eql(10);
             Event.undefEvent('red11:save');
             done();
         }, 25);
@@ -173,7 +173,7 @@ describe('Defined Custom Events', function () {
             e.preventDefault();
         });
         Event.onceAfter('red12:save', function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             Event.undefEvent('red12:save');
             done();
         });
@@ -194,7 +194,7 @@ describe('Defined Custom Events', function () {
         });
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 25);
     });
@@ -213,7 +213,7 @@ describe('Defined Custom Events', function () {
         });
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             done();
         }, 25);
     });
@@ -247,7 +247,7 @@ describe('Defined Custom Events', function () {
                 return 10;
             };
         Event.defineEvent('red:save').defaultFn(defFn);
-        Event.emit('red:save').returnValue.should.eql(10);
+        expect(Event.emit('red:save').returnValue).to.eql(10);
     });
 
     it('returnvalue emit when prevented with preventedFn', function () {
@@ -286,7 +286,7 @@ describe('Defined Custom Events', function () {
             e.preventDefault();
         });
         Event.defineEvent('red:save').defaultFn(defFn).preventedFn(prevFn).unPreventable();
-        Event.emit('red:save').returnValue.should.eql(10);
+        expect(Event.emit('red:save').returnValue).to.eql(10);
     });
 
     it('detach', function () {
@@ -319,13 +319,13 @@ describe('Defined Custom Events', function () {
         Event.before('red:save', function(e) {}, greenObject);
         Event.before('blue:save', function(e) {}, greenObject);
         Event.before('blue:load', function(e) {}, greenObject);
-        Event._subs['red:save'].b.length.should.be.equal(2);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
+        expect(Event._subs['red:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
         Event.detach(redObject, 'red:save');
-        Event._subs['red:save'].b.length.should.be.equal(1);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
     });
 
 
@@ -338,13 +338,13 @@ describe('Defined Custom Events', function () {
         Event.before('red:save', function(e) {}, greenObject);
         Event.before('blue:save', function(e) {}, greenObject);
         Event.before('blue:load', function(e) {}, greenObject);
-        Event._subs['red:save'].b.length.should.be.equal(2);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
+        expect(Event._subs['red:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
         Event.detachAll(redObject);
-        Event._subs['red:save'].b.length.should.be.equal(1);
-        Event._subs['blue:save'].b.length.should.be.equal(1);
-        Event._subs['blue:load'].b.length.should.be.equal(1);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:load'].b.length).to.eql(1);
     });
 
 });
@@ -371,7 +371,7 @@ describe('Defined Custom Events through instance', function () {
 
     it('eventobject inside defaultFn', function (done) {
         var defFn = function(e) {
-            e.a.should.be.equal(10);
+            expect(e.a).to.eql(10);
             done();
         },
         redObject = {}.merge(Event.Emitter('red'));
@@ -415,7 +415,7 @@ describe('Defined Custom Events through instance', function () {
         });
         redObject.emit('save', {silent: true});
         setTimeout(function(){
-            count.should.be.equal(2);
+            expect(count).to.eql(2);
             done();
         }, 25);
     });
@@ -431,7 +431,7 @@ describe('Defined Custom Events through instance', function () {
             };
         redObject.defineEvent('save').defaultFn(defFn).preventedFn(preventedFn);
         Event.after('red:save', function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             done();
         });
         redObject.emit('save');
@@ -451,7 +451,7 @@ describe('Defined Custom Events through instance', function () {
             e.preventDefault();
         });
         setTimeout(function() {
-            count.should.be.equal(10);
+            expect(count).to.eql(10);
             done();
         }, 25);
         redObject.emit('save');
@@ -471,7 +471,7 @@ describe('Defined Custom Events through instance', function () {
             e.preventDefault();
         });
         Event.after('red:save', function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             done();
         });
         redObject.emit('save');
@@ -492,7 +492,7 @@ describe('Defined Custom Events through instance', function () {
         });
         redObject.emit('save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 25);
     });
@@ -512,7 +512,7 @@ describe('Defined Custom Events through instance', function () {
         });
         redObject.emit('save');
         setTimeout(function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             done();
         }, 25);
     });
@@ -549,7 +549,7 @@ describe('Defined Custom Events through instance', function () {
                 return 10;
             };
         redObject.defineEvent('save').defaultFn(defFn);
-        redObject.emit('save').returnValue.should.eql(10);
+        expect(redObject.emit('save').returnValue).to.eql(10);
     });
 
     it('returnvalue emit-Promise when prevented with preventedFn', function () {
@@ -591,7 +591,7 @@ describe('Defined Custom Events through instance', function () {
             e.preventDefault();
         });
         redObject.defineEvent('save').defaultFn(defFn).preventedFn(prevFn).unPreventable();
-        redObject.emit('save').returnValue.should.eql(10);
+        expect(redObject.emit('save').returnValue).to.eql(10);
     });
 
 });

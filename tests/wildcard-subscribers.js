@@ -36,7 +36,7 @@ describe('Wildcard subscribers', function () {
             count = count + 4;
         });
         Event.after('*:save', function() {
-            count.should.be.equal(7);
+            expect(count).to.eql(7);
             done();
         });
         Event.emit('red:save');
@@ -60,7 +60,7 @@ describe('Wildcard subscribers', function () {
             count = count + 4;
         });
         Event.after('red:*', function() {
-            count.should.be.equal(7);
+            expect(count).to.eql(7);
             done();
         });
         Event.emit('red:save');
@@ -84,7 +84,7 @@ describe('Wildcard subscribers', function () {
             count = count + 4;
         });
         Event.after('*:*', function() {
-            count.should.be.equal(7);
+            expect(count).to.eql(7);
             done();
         });
         Event.emit('red:save');
@@ -160,17 +160,17 @@ describe('Wildcard subscribers', function () {
         Event.before('blue:save', function(e) {}, greenObject);
         Event.before('blue:load', function(e) {}, greenObject);
         Event.before('*:save', function(e) {}, greenObject);
-        Event._subs['red:*'].b.length.should.be.equal(2);
-        Event._subs['red:save'].b.length.should.be.equal(2);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
-        Event._subs['*:save'].b.length.should.be.equal(2);
+        expect(Event._subs['red:*'].b.length).to.eql(2);
+        expect(Event._subs['red:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
+        expect(Event._subs['*:save'].b.length).to.eql(2);
         Event.detach('*:save');
-        Event._subs['red:*'].b.length.should.be.equal(2);
-        Event._subs['red:save'].b.length.should.be.equal(1);
-        Event._subs['blue:save'].b.length.should.be.equal(1);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
-        Event._subs['*:save'].b.length.should.be.equal(1);
+        expect(Event._subs['red:*'].b.length).to.eql(2);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
+        expect(Event._subs['*:save'].b.length).to.eql(1);
     });
 
     it('detach emitterName:* on instance', function () {
@@ -186,17 +186,17 @@ describe('Wildcard subscribers', function () {
         Event.before('blue:save', function(e) {}, greenObject);
         Event.before('blue:load', function(e) {}, greenObject);
         Event.before('*:save', function(e) {}, greenObject);
-        Event._subs['red:*'].b.length.should.be.equal(2);
-        Event._subs['red:save'].b.length.should.be.equal(2);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
-        Event._subs['*:save'].b.length.should.be.equal(2);
+        expect(Event._subs['red:*'].b.length).to.eql(2);
+        expect(Event._subs['red:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
+        expect(Event._subs['*:save'].b.length).to.eql(2);
         Event.detach('red:*');
-        Event._subs['red:*'].b.length.should.be.equal(1);
-        Event._subs['red:save'].b.length.should.be.equal(1);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
-        Event._subs['*:save'].b.length.should.be.equal(2);
+        expect(Event._subs['red:*'].b.length).to.eql(1);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
+        expect(Event._subs['*:save'].b.length).to.eql(2);
     });
 
     it('detach *:* on instance', function () {
@@ -212,17 +212,17 @@ describe('Wildcard subscribers', function () {
         Event.before('blue:save', function(e) {}, greenObject);
         Event.before('blue:load', function(e) {}, greenObject);
         Event.before('*:save', function(e) {}, greenObject);
-        Event._subs['red:*'].b.length.should.be.equal(2);
-        Event._subs['red:save'].b.length.should.be.equal(2);
-        Event._subs['blue:save'].b.length.should.be.equal(2);
-        Event._subs['blue:load'].b.length.should.be.equal(2);
-        Event._subs['*:save'].b.length.should.be.equal(2);
+        expect(Event._subs['red:*'].b.length).to.eql(2);
+        expect(Event._subs['red:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
+        expect(Event._subs['blue:load'].b.length).to.eql(2);
+        expect(Event._subs['*:save'].b.length).to.eql(2);
         Event.detach('*:*');
-        Event._subs['red:*'].b.length.should.be.equal(1);
-        Event._subs['red:save'].b.length.should.be.equal(1);
-        Event._subs['blue:save'].b.length.should.be.equal(1);
-        Event._subs['blue:load'].b.length.should.be.equal(1);
-        Event._subs['*:save'].b.length.should.be.equal(1);
+        expect(Event._subs['red:*'].b.length).to.eql(1);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
+        expect(Event._subs['blue:load'].b.length).to.eql(1);
+        expect(Event._subs['*:save'].b.length).to.eql(1);
     });
 
     it('preventDefault *:eventName', function (done) {
@@ -236,7 +236,7 @@ describe('Wildcard subscribers', function () {
         Event.defineEvent('red:save').defaultFn(defFn);
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 50);
     });
@@ -252,7 +252,7 @@ describe('Wildcard subscribers', function () {
         Event.defineEvent('red:save').defaultFn(defFn);
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 50);
     });
@@ -268,7 +268,7 @@ describe('Wildcard subscribers', function () {
         Event.defineEvent('red:save').defaultFn(defFn);
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 50);
     });
@@ -284,7 +284,7 @@ describe('Wildcard subscribers', function () {
         Event.defineEvent('red:save').defaultFn(defFn);
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 50);
     });
@@ -300,7 +300,7 @@ describe('Wildcard subscribers', function () {
         Event.defineEvent('red:save').defaultFn(defFn);
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 50);
     });
@@ -316,7 +316,7 @@ describe('Wildcard subscribers', function () {
         Event.defineEvent('red:save').defaultFn(defFn);
         Event.emit('red:save');
         setTimeout(function() {
-            count.should.be.equal(0);
+            expect(count).to.eql(0);
             done();
         }, 50);
     });
@@ -329,7 +329,7 @@ describe('Wildcard subscribers', function () {
             e.a = 10;
         });
         Event.defineEvent('red:save').defaultFn(defFn);
-        Event.emit('red:save').a.should.eql(10);
+        expect(Event.emit('red:save').a).to.eql(10);
     });
 
     it('emit with emitterName:*', function () {
@@ -340,7 +340,7 @@ describe('Wildcard subscribers', function () {
             e.a = 10;
         });
         Event.defineEvent('red:save').defaultFn(defFn);
-        Event.emit('red:save').a.should.eql(10);
+        expect(Event.emit('red:save').a).to.eql(10);
     });
 
     it('emit with *:*', function () {
@@ -351,7 +351,7 @@ describe('Wildcard subscribers', function () {
             e.a = 10;
         });
         Event.defineEvent('red:save').defaultFn(defFn);
-        Event.emit('red:save').a.should.eql(10);
+        expect(Event.emit('red:save').a).to.eql(10);
     });
 
     it('emit with *:eventName when prefentDefaulted', function () {

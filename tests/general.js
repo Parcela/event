@@ -24,7 +24,7 @@ describe('General tests', function () {
         var redObject = {},
             handle;
         handle = Event.onceBefore('red:save', function(e) {}, redObject);
-        Event._subs['red:save'].b.length.should.be.equal(1);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
         handle.detach();
         (Event._subs['red:save']===undefined).should.be.true;
     });
@@ -33,7 +33,7 @@ describe('General tests', function () {
         var redObject = {},
             handle;
         handle = Event.before('red:save', function(e) {}, redObject);
-        Event._subs['red:save'].b.length.should.be.equal(1);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
         handle.detach();
         (Event._subs['red:save']===undefined).should.be.true;
     });
@@ -42,7 +42,7 @@ describe('General tests', function () {
         var redObject = {},
             handle;
         handle = Event.after('red:save', function() {}, redObject);
-        Event._subs['red:save'].a.length.should.be.equal(1);
+        expect(Event._subs['red:save'].a.length).to.eql(1);
         handle.detach();
         (Event._subs['red:save']===undefined).should.be.true;
     });
@@ -51,7 +51,7 @@ describe('General tests', function () {
         var redObject = {},
             handle;
         handle = Event.onceBefore('red:save', function() {}, redObject);
-        Event._subs['red:save'].b.length.should.be.equal(1);
+        expect(Event._subs['red:save'].b.length).to.eql(1);
         handle.detach();
         (Event._subs['red:save']===undefined).should.be.true;
     });
@@ -60,7 +60,7 @@ describe('General tests', function () {
         var redObject = {},
             handle;
         handle = Event.onceAfter('red:save', function() {}, redObject);
-        Event._subs['red:save'].a.length.should.be.equal(1);
+        expect(Event._subs['red:save'].a.length).to.eql(1);
         handle.detach();
         (Event._subs['red:save']===undefined).should.be.true;
     });
@@ -74,7 +74,7 @@ describe('General tests', function () {
         Event.emit(redObject, 'red:save');
         Event.emit(redObject, 'red:save');
         setTimeout(function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             done();
         }, 500);
     });
@@ -88,7 +88,7 @@ describe('General tests', function () {
         Event.emit(redObject, 'red:save');
         Event.emit(redObject, 'red:save');
         setTimeout(function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             done();
         }, 50);
     });
@@ -107,7 +107,7 @@ describe('General tests', function () {
         Event.emit(redObject, 'red:save');
         Event.emit(redObject, 'red:save');
         setTimeout(function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             handle.detach();
             done();
         }, 50);
@@ -127,7 +127,7 @@ describe('General tests', function () {
         Event.emit(redObject, 'red:save');
         Event.emit(redObject, 'red:save');
         setTimeout(function() {
-            count.should.be.equal(1);
+            expect(count).to.eql(1);
             handle.detach();
             done();
         }, 50);
@@ -137,11 +137,11 @@ describe('General tests', function () {
         var count = Event._final.length,
             handle1 = Event.finalize(function() {}),
             handle2 = Event.finalize(function() {});
-        Event._final.length.should.be.equal(count+2);
+        expect(Event._final.length).to.eql(count+2);
         handle1.detach();
-        Event._final.length.should.be.equal(count+1);
+        expect(Event._final.length).to.eql(count+1);
         handle2.detach();
-        Event._final.length.should.be.equal(count);
+        expect(Event._final.length).to.eql(count);
     });
 
     it('Event.finalize invocation and eventobject', function (done) {
@@ -149,7 +149,7 @@ describe('General tests', function () {
             handle;
         handle = Event.finalize(function(e) {
             handle.detach();
-            e.fin.should.be.equal(10);
+            expect(e.fin).to.eql(10);
             done();
         });
         Event.before('red:finalize1', function(e) {
@@ -162,7 +162,7 @@ describe('General tests', function () {
         var blueObject = {};
         blueObject.merge(Event.Listener);
         blueObject.before('blue:save', function() {});
-        Event._subs['blue:save'].b.length.should.be.equal(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
         blueObject.detach('blue:save');
         (Event._subs['blue:save']===undefined).should.be.true;
     });
@@ -175,12 +175,12 @@ describe('General tests', function () {
         blueObject.before('blue:save', function() {});
         blueObject.before('blueb:save', function() {});
         greenObject.before('blue:save', function() {});
-        Event._subs['blue:save'].b.length.should.be.equal(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
         blueObject.detach('blue:save');
-        Event._subs['blue:save'].b.length.should.be.equal(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
         greenObject.detach('blue:save');
         (Event._subs['blue:save']===undefined).should.be.true;
-        Event._subs['blueb:save'].b.length.should.be.equal(1);
+        expect(Event._subs['blueb:save'].b.length).to.eql(1);
         blueObject.detach('blueb:save');
         (Event._subs['blueb:save']===undefined).should.be.true;
     });
@@ -193,9 +193,9 @@ describe('General tests', function () {
         blueObject.before('blue:save', function() {});
         blueObject.before('blueb:save', function() {});
         greenObject.before('blue:save', function() {});
-        Event._subs['blue:save'].b.length.should.be.equal(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
         blueObject.detachAll();
-        Event._subs['blue:save'].b.length.should.be.equal(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
         (Event._subs['blueb:save']===undefined).should.be.true;
         greenObject.detach('blue:save');
         (Event._subs['blue:save']===undefined).should.be.true;
@@ -209,9 +209,9 @@ describe('General tests', function () {
         blueObject.before('blue:save', function() {});
         blueObject.before('blueb:save', function() {});
         greenObject.before('blue:save', function() {});
-        Event._subs['blue:save'].b.length.should.be.equal(2);
+        expect(Event._subs['blue:save'].b.length).to.eql(2);
         Event.detachAll(blueObject);
-        Event._subs['blue:save'].b.length.should.be.equal(1);
+        expect(Event._subs['blue:save'].b.length).to.eql(1);
         (Event._subs['blueb:save']===undefined).should.be.true;
         greenObject.detach('blue:save');
         (Event._subs['blue:save']===undefined).should.be.true;
@@ -387,15 +387,15 @@ describe('General tests', function () {
         var count = 0;
         Event.notify('red:save', function(ce) {
             ce.should.be.eql('red:save');
-            Event._notifiers.keys().length.should.be.eql(1);
+            expect(Event._notifiers.keys().length).to.eql(1);
             count++;
         }, Event);
         Event.before('red:save', function() {
-            Event._notifiers.keys().length.should.be.eql(0);
+            expect(Event._notifiers.keys().length).to.eql(0);
         });
         Event.emit('red:save');
         Event.emit('red:save');
-        count.should.be.eql(1);
+        expect(count).to.eql(1);
     });
 
     it('check notify() wildcard', function () {
@@ -403,18 +403,18 @@ describe('General tests', function () {
         Event.notify('red:*', function(ce) {
             (count===0) && ce.should.be.eql('red:save');
             (count===1) && ce.should.be.eql('red:create');
-            Event._notifiers.keys().length.should.be.eql(1);
+            expect(Event._notifiers.keys().length).to.eql(1);
             count++;
         }, Event);
         Event.before('red:save', function() {
-            Event._notifiers.keys().length.should.be.eql(1);
+            expect(Event._notifiers.keys().length).to.eql(1);
         });
         Event.before('red:create', function() {
-            Event._notifiers.keys().length.should.be.eql(1);
+            expect(Event._notifiers.keys().length).to.eql(1);
         });
         Event.emit('red:save');
         Event.emit('red:create');
-        count.should.be.eql(2);
+        expect(count).to.eql(2);
     });
 
     it('check unNotify()', function () {
@@ -424,7 +424,7 @@ describe('General tests', function () {
         }, Event);
         Event.unNotify('red:save');
         Event.emit('red:save');
-        count.should.be.eql(0);
+        expect(count).to.eql(0);
     });
 
     it('check unNotify() wildcard', function () {
@@ -434,7 +434,7 @@ describe('General tests', function () {
         }, Event);
         Event.unNotify('red:*');
         Event.emit('red:save');
-        count.should.be.eql(0);
+        expect(count).to.eql(0);
     });
 
     it('check unNotifyAll()', function () {
@@ -447,7 +447,7 @@ describe('General tests', function () {
         }, Event);
         Event.unNotifyAll();
         Event.emit('red:save');
-        count.should.be.eql(0);
+        expect(count).to.eql(0);
     });
 
     it('check notify() when not needed', function () {
@@ -471,7 +471,7 @@ describe('General tests', function () {
             count += 2;
         });
         Event._emit('red:save', null, [subscriber]).status.ok.should.be.true;
-        count.should.be.eql(3);
+        expect(count).to.eql(3);
     });
 
     it('different aftersubscribers', function () {
@@ -489,7 +489,7 @@ describe('General tests', function () {
             throw new Error('default after-subscriber shouln\'t get invoked');
         });
         Event._emit('red:save', null, null, [subscriber]).status.ok.should.be.true;
-        count.should.be.eql(3);
+        expect(count).to.eql(3);
     });
 
     it('different before- and after-subscribers', function () {
@@ -513,7 +513,7 @@ describe('General tests', function () {
             throw new Error('default after-subscriber shouln\'t get invoked');
         });
         Event._emit('red:save', null, [beforeSubscriber], [afterSubscriber]).status.ok.should.be.true;
-        count.should.be.eql(3);
+        expect(count).to.eql(3);
     });
 
     it('check ParcelaEvent:selectorsubs gets invoked', function (done) {
@@ -525,7 +525,7 @@ describe('General tests', function () {
         Event.after('UI:save', function() {});
         setTimeout(
             function() {
-                count.should.be.eql(1);
+                expect(count).to.eql(1);
                 Event.undefEvent('ParcelaEvent:selectorsubs');
                 done();
             }, 0

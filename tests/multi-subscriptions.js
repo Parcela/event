@@ -25,7 +25,7 @@ describe('Multi subscriptions', function () {
             });
             Event.emit('green:save');
             Event.emit('red:save');
-            count.should.be.eql(2);
+            expect(count).to.eql(2);
         });
 
         it('invocation once-subscription', function () {
@@ -45,7 +45,7 @@ describe('Multi subscriptions', function () {
             handler.detach();
             Event.emit('green:save');
             Event.emit('red:save');
-            count.should.be.eql(1);
+            expect(count).to.eql(1);
         });
 
         it('detaching', function () {
@@ -60,7 +60,7 @@ describe('Multi subscriptions', function () {
             greenObject.detach('red:save');
             Event.emit('green:save');
             Event.emit('red:save');
-            count.should.be.eql(2);
+            expect(count).to.eql(2);
         });
 
         it('detach all', function () {
@@ -75,7 +75,7 @@ describe('Multi subscriptions', function () {
             greenObject.detachAll();
             Event.emit('green:save');
             Event.emit('red:save');
-            count.should.be.eql(1);
+            expect(count).to.eql(1);
         });
 
         it('context inside subscriber', function () {
@@ -126,7 +126,7 @@ describe('Multi subscriptions', function () {
             });
             Event.emit('green:save');
             Event.emit('red:save');
-            count.should.be.eql(2);
+            expect(count).to.eql(2);
         });
 
         it('halted', function () {
@@ -143,7 +143,7 @@ describe('Multi subscriptions', function () {
             });
             Event.emit('green:save');
             Event.emit('red:save');
-            count.should.be.eql(2);
+            expect(count).to.eql(2);
         });
 
         it('silenced', function () {
@@ -160,7 +160,7 @@ describe('Multi subscriptions', function () {
             });
             Event.emit('green:save', {silent: true});
             Event.emit('red:save', {silent: true});
-            count.should.be.eql(10);
+            expect(count).to.eql(10);
         });
 
 });
