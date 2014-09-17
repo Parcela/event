@@ -25,7 +25,7 @@
         "url": "https://github.com/Parcela/event/issues"
     },
     "dependencies": {
-        "lang-ext": "git://github.com/Parcela/lang-ext.git#v0.0.7",
+        "lang-ext": "Parcela/lang-ext",
         "ypromise": "*"
     },
     "devDependencies": {
