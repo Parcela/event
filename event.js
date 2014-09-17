@@ -11,8 +11,6 @@
 */
 
 require('lang-ext');
-require('ypromise');
-
 
 // to prevent multiple Event instances
 // (which might happen: http://nodejs.org/docs/latest/api/modules.html#modules_module_caching_caveats)
@@ -33,6 +31,8 @@ require('ypromise');
     "use strict";
 
     var NAME = '[core-event]: ',
+        PARCELA_EMITTER = 'ParcelaEvent',
+        REGEXP_PARCELA_EMITTER = new RegExp('^'+PARCELA_EMITTER),
         REGEXP_CUSTOMEVENT = /^((?:\w|-)+):((?:\w|-)+)$/,
         REGEXP_WILDCARD_CUSTOMEVENT = /^(?:((?:(?:\w|-)+)|\*):)?((?:(?:\w|-)+)|\*)$/,
         /* REGEXP_WILDCARD_CUSTOMEVENT :
@@ -56,7 +56,6 @@ require('ypromise');
         REGEXP_EVENTNAME_WITH_SEMICOLON = /:((?:\w|-)+)$/,
         MSG_HALTED = 'event was halted',
         MSG_PREVENTED = 'event was defaultPrevented',
-        REGEXP_UI_OUTSIDE = /^UI:.+outside$/,
         DEFINE_IMMUTAL_PROPERTY = function (obj, property, value) {
             Object.defineProperty(obj, property, {
                 configurable: false,
@@ -91,8 +90,8 @@ require('ypromise');
          * @since 0.0.1
         */
         after: function(customEvent, callback, context, filter, prepend) {
-            console.log('add after subscriber to: '+customEvent);
-            if (typeof context === 'string') {
+            console.log(NAME, 'add after subscriber to: '+customEvent);
+            if ((typeof context === 'string') || (typeof context === 'function')) {
                 prepend = filter;
                 filter = context;
                 context = null;
@@ -128,8 +127,8 @@ require('ypromise');
          * @since 0.0.1
         */
         before: function(customEvent, callback, context, filter, prepend) {
-            console.log('add before subscriber to: '+customEvent);
-            if (typeof context === 'string') {
+            console.log(NAME, 'add before subscriber to: '+customEvent);
+            if ((typeof context === 'string') || (typeof context === 'function')) {
                 prepend = filter;
                 filter = context;
                 context = null;
@@ -153,7 +152,7 @@ require('ypromise');
          * @since 0.0.1
          */
         defineEmitter: function (emitter, emitterName) {
-            console.log('defineEmitter: '+emitterName);
+            console.log(NAME, 'defineEmitter: '+emitterName);
             // ennumerable MUST be set `true` to enable merging
             Object.defineProperty(emitter, '_emitterName', {
                 configurable: false,
@@ -194,7 +193,7 @@ require('ypromise');
          * @since 0.0.1
          */
         defineEvent: function (customEvent) {
-            console.log('Events.defineEvent: '+customEvent);
+            console.log(NAME, 'Events.defineEvent: '+customEvent);
             var instance = this,
                 customevents = instance._ce,
                 extract, exists, newCustomEvent;
@@ -284,7 +283,7 @@ require('ypromise');
          * @since 0.0.1
         */
         detachAll: function(listener) {
-            console.log('detach '+(listener ? 'all instance-' : 'ALL')+' subscribers');
+            console.log(NAME, 'detach '+(listener ? 'all instance-' : 'ALL')+' subscribers');
             var instance = this;
             if (listener) {
                 instance._removeSubscribers(listener, '*:*');
@@ -293,7 +292,10 @@ require('ypromise');
                 // we cannot just redefine _subs, for it is set as readonly
                 instance._subs.each(
                     function(value, key) {
-                        delete instance._subs[key];
+                        // remove only subscribers that are not subscribed to systemevents of Parcela (emitterName=='ParcelaEvent'):
+                        if (!REGEXP_PARCELA_EMITTER.test(key)) {
+                            delete instance._subs[key];
+                        }
                     }
                 );
             }
@@ -345,153 +347,12 @@ require('ypromise');
          * @param customEvent {String} Full customEvent conform syntax `emitterName:eventName`.
          *        `emitterName` is available as **e.emitter**, `eventName` as **e.type**.
          * @param payload {Object} extra payload to be added to the event-object
-         * @param [beforeSubscribers] {Array} array of functions to act as beforesubscribers. <b>should not be used</b> other than
-         *                            by any submodule like `event-dom`. If used, than this list of subscribers gets invoked instead
-         *                            of the subscribers that actually subscribed to the event.
-         * @param [afterSubscribers] {Array} array of functions to act as afterSubscribers. <b>should not be used</b> other than
-         *                            by any submodule like `event-dom`. If used, than this list of subscribers gets invoked instead
-         *                            of the subscribers that actually subscribed to the event.
          * @return {Object|undefined} eventobject or undefined when the event was halted or preventDefaulted.
          * @since 0.0.1
          */
-        emit: function (emitter, customEvent, payload, beforeSubscribers, afterSubscribers) {
-            // NOTE: emit() needs to be synchronous! otherwise we wouldn't be able
-            // to preventDefault DOM-events in time.
-            var instance = this,
-                allCustomEvents = instance._ce,
-                allSubscribers = instance._subs,
-                customEventDefinition, extract, emitterName, eventName, subs, wildcard_named_subs,
-                named_wildcard_subs, wildcard_wildcard_subs, e;
-            if (typeof emitter === 'string') {
-                // emit is called with signature emit(customEvent, payload)
-                // thus the source-emitter is the Event-instance
-                afterSubscribers = beforeSubscribers;
-                beforeSubscribers = payload;
-                payload = customEvent;
-                customEvent = emitter;
-                emitter = instance;
-            }
-            (customEvent.indexOf(':') !== -1) || (customEvent = emitter._emitterName+':'+customEvent);
-            console.log(NAME, 'customEvent.emit: '+customEvent);
-
-            extract = customEvent.match(REGEXP_CUSTOMEVENT);
-            if (!extract) {
-                console.error(NAME, 'defined emit-event does not match pattern');
-                return;
-            }
-            emitterName = extract[1];
-            eventName = extract[2];
-            customEventDefinition = allCustomEvents[customEvent];
-
-            subs = allSubscribers[customEvent];
-            wildcard_named_subs = allSubscribers['*:'+eventName];
-            named_wildcard_subs = allSubscribers[emitterName+':*'];
-            wildcard_wildcard_subs = allSubscribers['*:*'];
-
-            e = Object.create(instance._defaultEventObj, {
-                target: {
-                    configurable: false,
-                    enumerable: true,
-                    writable: true, // cautious: needs to be writable: event-dom resets e.target
-                    value: emitter
-                },
-                type: {
-                    configurable: false,
-                    enumerable: true,
-                    writable: false,
-                    value: eventName
-                },
-                emitter: {
-                    configurable: false,
-                    enumerable: true,
-                    writable: false,
-                    value: emitterName
-                },
-                status: {
-                    configurable: false,
-                    enumerable: true,
-                    writable: false,
-                    value: {}
-                },
-                _unPreventable: {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: customEventDefinition && customEventDefinition.unPreventable
-                },
-                _unHaltable: {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: customEventDefinition && customEventDefinition.unHaltable
-                },
-                _unRenderPreventable: {
-                    configurable: false,
-                    enumerable: false,
-                    writable: false,
-                    value: customEventDefinition && customEventDefinition.unRenderPreventable
-                }
-            });
-            if (customEventDefinition) {
-                customEventDefinition.unSilencable && (e.status.unSilencable = true);
-            }
-            if (payload) {
-                // e.merge(payload); is not enough --> DOM-eventobject has many properties that are not "own"-properties
-                for (var key in payload) {
-                    e[key] || (e[key]=payload[key]);
-                }
-            }
-            if (e.status.unSilencable && e.silent) {
-                console.warn(NAME, ' event '+e.emitter+':'+e.type+' cannot made silent: this customEvent is defined as unSilencable');
-                e.silent = false;
-            }
-            if (beforeSubscribers) {
-                instance._invokeSubs(e, beforeSubscribers, true);
-            }
-            else {
-                subs && subs.b && instance._invokeSubs(e, subs.b, true);
-                named_wildcard_subs && named_wildcard_subs.b && instance._invokeSubs(e, named_wildcard_subs.b, true);
-                wildcard_named_subs && wildcard_named_subs.b && instance._invokeSubs(e, wildcard_named_subs.b, true);
-                wildcard_wildcard_subs && wildcard_wildcard_subs.b && instance._invokeSubs(e, wildcard_wildcard_subs.b, true);
-            }
-            e.status.ok = !e.status.halted && !e.status.defaultPrevented;
-            // in case any subscriber changed e.target inside its filter (event-dom does this),
-            // then we reset e.target to its original:
-            e._originalTarget && (e.target=e._originalTarget);
-            if (customEventDefinition && !e.status.halted) {
-                // now invoke defFn
-                e.returnValue = e.status.defaultPrevented ?
-                                (customEventDefinition.preventedFn && (e.status.preventedFn=true) && customEventDefinition.preventedFn.call(e.target, e)) :
-                                (customEventDefinition.defaultFn && (e.status.defaultFn=true) && customEventDefinition.defaultFn.call(e.target, e));
-            }
-
-            if (e.status.ok) {
-                if (afterSubscribers) {
-                    instance._invokeSubs(e, afterSubscribers, true);
-                }
-                else {
-                    subs && subs.a && instance._invokeSubs(e, subs.a, false);
-                    named_wildcard_subs && named_wildcard_subs.a && instance._invokeSubs(e, named_wildcard_subs.a);
-                    wildcard_named_subs && wildcard_named_subs.a && instance._invokeSubs(e, wildcard_named_subs.a);
-                    wildcard_wildcard_subs && wildcard_wildcard_subs.a && instance._invokeSubs(e, wildcard_wildcard_subs.a);
-                }
-                if (!e.silent) {
-                    // in case any subscriber changed e.target inside its filter (event-dom does this),
-                    // then we reset e.target to its original:
-                    e._originalTarget && (e.target=e._originalTarget);
-                    instance._final.some(function(finallySubscriber) {
-                        !e.silent && finallySubscriber(e);
-                        if (e.status.unSilencable && e.silent) {
-                            console.warn(NAME, ' event '+e.emitter+':'+e.type+' cannot made silent: this customEvent is defined as unSilencable');
-                            e.silent = false;
-                        }
-                        return e.silent;
-                    });
-                }
-            }
-            return e;
+        emit: function (emitter, customEvent, payload) {
+            return this._emit.apply(this, arguments);
         },
-
 
         /**
          * Adds a subscriber to the finalization-cycle, which happens after the after-subscribers.
@@ -632,7 +493,7 @@ require('ypromise');
         onceAfter: function(customEvent, callback, context, filter, prepend) {
             var instance = this,
                 handler, wrapperFn;
-            console.log('add onceAfter subscriber to: '+customEvent);
+            console.log(NAME, 'add onceAfter subscriber to: '+customEvent);
             wrapperFn = function(e) {
                 // CAUTIOUS: removeing the handler right now would lead into a mismatch of the dispatcher
                 // who loops through the array of subscribers!
@@ -645,7 +506,7 @@ require('ypromise');
                 handler._detached = true;
                 setTimeout(function() {handler.detach();}, 0);
             };
-            if (typeof context === 'string') {
+            if ((typeof context === 'string') || (typeof context === 'function')) {
                 prepend = filter;
                 filter = context;
                 context = null;
@@ -686,7 +547,7 @@ require('ypromise');
         onceBefore: function(customEvent, callback, context, filter, prepend) {
             var instance = this,
                 handler, wrapperFn;
-            console.log('add onceBefore subscriber to: '+customEvent);
+            console.log(NAME, 'add onceBefore subscriber to: '+customEvent);
             wrapperFn = function(e) {
                 // CAUTIOUS: removeing the handler right now would lead into a mismatch of the dispatcher
                 // who loops through the array of subscribers!
@@ -699,7 +560,7 @@ require('ypromise');
                 handler._detached = true;
                 setTimeout(function() {handler.detach();}, 0);
             };
-            if (typeof context === 'string') {
+            if ((typeof context === 'string') || (typeof context === 'function')) {
                 prepend = filter;
                 filter = context;
                 context = null;
@@ -723,14 +584,26 @@ require('ypromise');
          * @since 0.0.1
          */
         undefAllEvents: function (emitterName) {
+            console.log(NAME, 'undefAllEvents');
             var instance = this,
-                stringpattern = emitterName ? emitterName+':' : '(?!UI:)',
-                pattern = new RegExp('^'+stringpattern);
-            instance._ce.each(
-                function(value, key, object) {
-                    key.match(pattern) && (delete instance._ce[key]);
-                }
-            );
+                pattern;
+            if (emitterName) {
+                pattern = new RegExp('^'+emitterName+':');
+                instance._ce.each(
+                    function(value, key, object) {
+                        key.match(pattern) && (delete instance._ce[key]);
+                    }
+                );
+            }
+            else {
+                instance._ce.each(
+                    function(value, key, object) {
+                        if ((key.substring(0,3)!=='UI:') && (key.substring(0,13)!=='ParcelaEvent:')) {
+                            delete instance._ce[key];
+                        }
+                    }
+                );
+            }
         },
 
         /**
@@ -815,7 +688,7 @@ require('ypromise');
          * @since 0.0.1
         */
         _addMultiSubs: function(listener, before, customEvent, callback, filter, prepend) {
-            console.log('_addMultiSubs');
+            console.log(NAME, '_addMultiSubs');
             var instance = this;
             if (!Array.isArray(customEvent)) {
                 return instance._addSubscriber(listener, before, customEvent, callback, filter, prepend);
@@ -873,7 +746,7 @@ require('ypromise');
             var instance = this,
                 allSubscribers = instance._subs,
                 extract = customEvent.match(REGEXP_WILDCARD_CUSTOMEVENT),
-                hashtable, item, notifier, customEventWildcardEventName, outsideEvent;
+                hashtable, item, notifier, customEventWildcardEventName;
 
             if (!extract) {
                 console.error(NAME, 'subscribe-error: eventname does not match pattern');
@@ -887,16 +760,23 @@ require('ypromise');
             // if extract[1] is undefined, a simple customEvent is going to subscribe (without :)
             // therefore: recomposite customEvent:
             extract[1] || (customEvent='UI:'+customEvent);
-            outsideEvent = REGEXP_UI_OUTSIDE.test(customEvent);
-            outsideEvent && (customEvent=customEvent.substring(0, customEvent.length-7));
-            allSubscribers[customEvent] || (allSubscribers[customEvent]={b:[], a:[]});
+
+
+            allSubscribers[customEvent] || (allSubscribers[customEvent]={});
+            if (before) {
+                allSubscribers[customEvent].b || (allSubscribers[customEvent].b=[]);
+            }
+            else {
+                allSubscribers[customEvent].a || (allSubscribers[customEvent].a=[]);
+            }
+
             hashtable = allSubscribers[customEvent][before ? 'b' : 'a'];
             // we need to be able to process an array of customevents
             item = {
                 o: listener || instance,
-                cb: callback
+                cb: callback,
+                f: filter
             };
-            instance._createFilter(item, filter, customEvent, outsideEvent);
 
             // in case of a defined subscription (no wildcard), we should look for notifiers
             if ((extract[1]!=='*') && (extract[2]!=='*')) {
@@ -911,8 +791,25 @@ require('ypromise');
                 (customEventWildcardEventName !== customEvent) && (notifier=instance._notifiers[customEventWildcardEventName]) && notifier.cb.call(notifier.o, customEvent);
             }
 
-            console.log('_addSubscriber to customEvent: '+customEvent);
+            console.log(NAME, '_addSubscriber to customEvent: '+customEvent);
             prepend ? hashtable.unshift(item) : hashtable.push(item);
+            // in case of `UI`, other modules (like event-dom) might need to change properties of the subscriber:
+            if (customEvent.substring(0, 3)==='UI:') {
+                /**
+                 * Is emitted whenever an UI-event gets subscribed
+                 * By emitting this event, `event-dom` can catch it and process the filter-selector
+                 *
+                 * @event ParcelaEvent:selectorsubs
+                 * @param customEvent {String}
+                 * @param subscriber {Object}
+                 * @param subscriber.o {Object} context for the callbackFn
+                 * @param subscriber.cb {Object} callbackFn
+                 * @param subscriber.f {String|Function} filterfunction or selector
+                 * @since 0.1
+                **/
+                instance.emit(PARCELA_EMITTER+':selectorsubs', {customEvent: customEvent, subscriber: item});
+            }
+
             return {
                 detach: function() {
                     instance._removeSubscriber(listener, before, customEvent, callback);
@@ -921,20 +818,208 @@ require('ypromise');
         },
 
         /**
-         * Creates the filter-function on the subscriber.
-         * Inside core-event-base this means: just set the filter, but core-event-dom overrides this method
-         * (because dom-filters could be css-selectors)
+         * Emits the event `eventName` on behalf of `emitter`, which becomes e.target in the eventobject.
+         * During this process, all subscribers and the defaultFn/preventedFn get an eventobject passed through.
+         * The eventobject is created with at least these properties:
          *
-         * @method _createFilter
-         * @param filter {Function|String}
-         * @param customEvent {String}
-         * @param [outsideEvent] {Boolean} whetrer it is an outside-event (like `clickoutside`)
-         * @private
+         * <ul>
+         *     <li>e.target --> source that triggered the event (instance or DOM-node), specified by `emitter`</li>
+         *     <li>e.type --> eventName</li>
+         *     <li>e.emitter --> emitterName</li>
+         *     <li>e.status --> status-information:
+         *          <ul>
+         *               <li>e.status.ok --> `true|false` whether the event got executed (not halted or defaultPrevented)</li>
+         *               <li>e.status.defaultFn (optional) --> `true` if any defaultFn got invoked</li>
+         *               <li>e.status.preventedFn (optional) --> `true` if any preventedFn got invoked</li>
+         *               <li>e.status.rendered (optional) --> `true` the vDOM rendered the dom</li>
+         *               <li>e.status.halted (optional) --> `reason|true` if the event got halted and optional the why</li>
+         *               <li>e.status.defaultPrevented (optional) -->  `reason|true` if the event got defaultPrevented and optional the why</li>
+         *               <li>e.status.renderPrevented (optional) -->  `reason|true` if the event got renderPrevented and optional the why</li>
+         *          </ul>
+         *     </li>
+         * </ul>
+         *
+         * The optional `payload` is merged into the eventobject and could be used by the subscribers and the defaultFn/preventedFn.
+         * If payload.silent is set true, the subscribers are not getting invoked: only the defaultFn.
+         *
+         * The eventobject also has these methods:
+         *
+         * <ul>
+         *     <li>e.halt() --> stops immediate all actions: no mer subscribers are invoked, no defaultFn/preventedFn</li>
+         *     <li>e.preventDefault() --> instead of invoking defaultFn, preventedFn will be invoked. No aftersubscribers</li>
+         *     <li>e.preventRender() --> by default, any event will trigger the vDOM (if exists) to re-render, this can be prevented by calling e.preventRender()</li>
+         * </ul>
+         *
+         * <ul>
+         *     <li>First, before-subscribers are invoked: this is the place where you might call `e.halt()`, `a.preventDefault()` or `e.preventRender()`</li>
+         *     <li>Next, defaultFn or preventedFn gets invoked, depending on whether e.halt() or a.preventDefault() has been called</li>
+         *     <li>Next, after-subscribers get invoked (unless e.halt() or a.preventDefault() has been called)</li>
+         *     <li>Finally, the finalization takes place: any subscribers are invoked, unless e.halt() or a.preventDefault() has been called</li>
+         * <ul>
+         *
+         * @static
+         * @method emit
+         * @param [emitter] {Object} instance that emits the events
+         * @param customEvent {String} Full customEvent conform syntax `emitterName:eventName`.
+         *        `emitterName` is available as **e.emitter**, `eventName` as **e.type**.
+         * @param payload {Object} extra payload to be added to the event-object
+         * @param [beforeSubscribers] {Array} array of functions to act as beforesubscribers. <b>should not be used</b> other than
+         *                            by any submodule like `event-dom`. If used, than this list of subscribers gets invoked instead
+         *                            of the subscribers that actually subscribed to the event.
+         * @param [afterSubscribers] {Array} array of functions to act as afterSubscribers. <b>should not be used</b> other than
+         *                            by any submodule like `event-dom`. If used, than this list of subscribers gets invoked instead
+         *                            of the subscribers that actually subscribed to the event.
+         * @param [preProcessor] {Function} if passed, this function will be invoked before every single subscriber
+         *                       It is meant to manipulate the eventobject, something that `event-dom` needs to do
+         *                       This function expects 2 arguments: `subscriber` and `eventobject`.
+         *                       <b>should not be used</b> other than by any submodule like `event-dom`.
+         * @param [keepPayload] {Boolean} whether `payload` should be used as the ventobject instead of creating a new
+         *                      eventobject and merge payload. <b>should not be used</b> other than by any submodule like `event-dom`.
+         * @return {Object|undefined} eventobject or undefined when the event was halted or preventDefaulted.
          * @since 0.0.1
          */
-        _createFilter: function(subscriber, filter /*, customEvent, outsideEvent */) {
-            console.log(NAME, '_createFilter');
-            subscriber.f = filter;
+        _emit: function (emitter, customEvent, payload, beforeSubscribers, afterSubscribers, preProcessor, keepPayload) {
+            // NOTE: emit() needs to be synchronous! otherwise we wouldn't be able
+            // to preventDefault DOM-events in time.
+            var instance = this,
+                allCustomEvents = instance._ce,
+                allSubscribers = instance._subs,
+                customEventDefinition, extract, emitterName, eventName, subs, wildcard_named_subs,
+                named_wildcard_subs, wildcard_wildcard_subs, e;
+            if (typeof emitter === 'string') {
+                // emit is called with signature emit(customEvent, payload)
+                // thus the source-emitter is the Event-instance
+                preProcessor = afterSubscribers;
+                afterSubscribers = beforeSubscribers;
+                beforeSubscribers = payload;
+                payload = customEvent;
+                customEvent = emitter;
+                emitter = instance;
+            }
+            (customEvent.indexOf(':') !== -1) || (customEvent = emitter._emitterName+':'+customEvent);
+            console.log(NAME, 'customEvent.emit: '+customEvent);
+
+            extract = customEvent.match(REGEXP_CUSTOMEVENT);
+            if (!extract) {
+                console.error(NAME, 'defined emit-event does not match pattern');
+                return;
+            }
+            emitterName = extract[1];
+            eventName = extract[2];
+            customEventDefinition = allCustomEvents[customEvent];
+
+            subs = allSubscribers[customEvent];
+            wildcard_named_subs = allSubscribers['*:'+eventName];
+            named_wildcard_subs = allSubscribers[emitterName+':*'];
+            wildcard_wildcard_subs = allSubscribers['*:*'];
+
+            if (keepPayload) {
+                e = payload;
+            }
+            else {
+                e = Object.create(instance._defaultEventObj, {
+                    target: {
+                        configurable: false,
+                        enumerable: true,
+                        writable: true, // cautious: needs to be writable: event-dom resets e.target
+                        value: emitter
+                    },
+                    type: {
+                        configurable: false,
+                        enumerable: true,
+                        writable: false,
+                        value: eventName
+                    },
+                    emitter: {
+                        configurable: false,
+                        enumerable: true,
+                        writable: false,
+                        value: emitterName
+                    },
+                    status: {
+                        configurable: false,
+                        enumerable: true,
+                        writable: false,
+                        value: {}
+                    },
+                    _unPreventable: {
+                        configurable: false,
+                        enumerable: false,
+                        writable: false,
+                        value: customEventDefinition && customEventDefinition.unPreventable
+                    },
+                    _unHaltable: {
+                        configurable: false,
+                        enumerable: false,
+                        writable: false,
+                        value: customEventDefinition && customEventDefinition.unHaltable
+                    },
+                    _unRenderPreventable: {
+                        configurable: false,
+                        enumerable: false,
+                        writable: false,
+                        value: customEventDefinition && customEventDefinition.unRenderPreventable
+                    }
+                });
+                if (customEventDefinition) {
+                    customEventDefinition.unSilencable && (e.status.unSilencable = true);
+                }
+                if (payload) {
+                    // e.merge(payload); is not enough --> DOM-eventobject has many properties that are not "own"-properties
+                    for (var key in payload) {
+                        e[key] || (e[key]=payload[key]);
+                    }
+                }
+                if (e.status.unSilencable && e.silent) {
+                    console.warn(NAME, ' event '+e.emitter+':'+e.type+' cannot made silent: this customEvent is defined as unSilencable');
+                    e.silent = false;
+                }
+            }
+            if (beforeSubscribers) {
+                instance._invokeSubs(e, beforeSubscribers, false, true, preProcessor);
+            }
+            else {
+                subs && subs.b && instance._invokeSubs(e, subs.b, true, true);
+                named_wildcard_subs && named_wildcard_subs.b && instance._invokeSubs(e, named_wildcard_subs.b, true, true);
+                wildcard_named_subs && wildcard_named_subs.b && instance._invokeSubs(e, wildcard_named_subs.b, true, true);
+                wildcard_wildcard_subs && wildcard_wildcard_subs.b && instance._invokeSubs(e, wildcard_wildcard_subs.b, true, true);
+            }
+            e.status.ok = !e.status.halted && !e.status.defaultPrevented;
+            // in case any subscriber changed e.target inside its filter (event-dom does this),
+            // then we reset e.target to its original:
+            e.sourceTarget && (e.target=e.sourceTarget);
+            if (customEventDefinition && !e.status.halted) {
+                // now invoke defFn
+                e.returnValue = e.status.defaultPrevented ?
+                                (customEventDefinition.preventedFn && (e.status.preventedFn=true) && customEventDefinition.preventedFn.call(e.target, e)) :
+                                (customEventDefinition.defaultFn && (e.status.defaultFn=true) && customEventDefinition.defaultFn.call(e.target, e));
+            }
+
+            if (e.status.ok) {
+                if (afterSubscribers) {
+                    instance._invokeSubs(e, afterSubscribers, false, false, preProcessor);
+                }
+                else {
+                    subs && subs.a && instance._invokeSubs(e, subs.a, true);
+                    named_wildcard_subs && named_wildcard_subs.a && instance._invokeSubs(e, named_wildcard_subs.a, true);
+                    wildcard_named_subs && wildcard_named_subs.a && instance._invokeSubs(e, wildcard_named_subs.a, true);
+                    wildcard_wildcard_subs && wildcard_wildcard_subs.a && instance._invokeSubs(e, wildcard_wildcard_subs.a, true);
+                }
+                if (!e.silent) {
+                    // in case any subscriber changed e.target inside its filter (event-dom does this),
+                    // then we reset e.target to its original:
+                    e.sourceTarget && (e.target=e.sourceTarget);
+                    instance._final.some(function(finallySubscriber) {
+                        !e.silent && finallySubscriber(e);
+                        if (e.status.unSilencable && e.silent) {
+                            console.warn(NAME, ' event '+e.emitter+':'+e.type+' cannot made silent: this customEvent is defined as unSilencable');
+                            e.silent = false;
+                        }
+                        return e.silent;
+                    });
+                }
+            }
+            return e;
         },
 
         /**
@@ -956,17 +1041,20 @@ require('ypromise');
          * @private
          * @since 0.0.1
          */
-        //
-        // CAUTIOUS: When making changes here, you should look whether these changes also effect `_invokeSubs()`
-        // inside `core-event-dom`
-        //
-        _invokeSubs: function (e, subscribers, before) { // subscribers, plural
+        _invokeSubs: function (e, subscribers, checkFilter, before, preProcessor) { // subscribers, plural
             console.log(NAME, '_invokeSubs');
             if (!e.status.halted && !e.silent) {
                 subscribers.some(function(subscriber) {
-                    console.log(NAME, '_invokeSubs for single subscriber');
-                    (!subscriber.f || subscriber.f.call(subscriber.o, e)) && // check: does it pass the filter
-                    subscriber.cb.call(subscriber.o, e); // finally: invoke subscriber
+                    console.log(NAME, '_invokeSubs checking invokation for single subscriber');
+                    if (preProcessor && preProcessor(subscriber, e)) {
+                        return true;
+                    }
+                    // check: does it pass the filter
+                    if (!checkFilter || !subscriber.f || subscriber.f.call(subscriber.o, e)) {
+                        // finally: invoke subscriber
+                        console.log(NAME, '_invokeSubs is going to invoke subscriber');
+                        subscriber.cb.call(subscriber.o, e);
+                    }
                     if (e.status.unSilencable && e.silent) {
                         console.warn(NAME, ' event '+e.emitter+':'+e.type+' cannot made silent: this customEvent is defined as unSilencable');
                         e.silent = false;
@@ -996,8 +1084,9 @@ require('ypromise');
             var instance = this,
                 eventSubscribers = instance._subs[customEvent],
                 hashtable = eventSubscribers && eventSubscribers[before ? 'b' : 'a'],
-                i, subscriber;
-            if (hashtable) {
+                i, subscriber, beforeUsed, afterUsed;
+            // remove only subscribers that are not subscribed to systemevents of Parcela (emitterName=='ParcelaEvent'):
+            if (hashtable && !REGEXP_PARCELA_EMITTER.test(customEvent)) {
                 // unfortunatly we cannot search by reference, because the array has composed objects
                 // also: can't use native Array.forEach: removing items within its callback change the array
                 // during runtime, making it to skip the next item of the one that's being removed
@@ -1012,7 +1101,13 @@ require('ypromise');
             }
             // After removal subscriber: check whether both eventSubscribers.a and eventSubscribers.b are empty
             // if so, remove the member from Event._subs to cleanup memory
-            eventSubscribers && (eventSubscribers.a.length===0) && (eventSubscribers.b.length===0) && (delete instance._subs[customEvent]);
+            if (eventSubscribers) {
+                beforeUsed = eventSubscribers.b && (eventSubscribers.b.length>0);
+                afterUsed = eventSubscribers.a && (eventSubscribers.a.length>0);
+                if (!beforeUsed && !afterUsed) {
+                    delete instance._subs[customEvent];
+                }
+            }
         },
 
         /**

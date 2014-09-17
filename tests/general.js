@@ -2,10 +2,10 @@
 "use strict";
 var expect = require('chai').expect,
 	should = require('chai').should(),
+    Event = require("../event.js");
 
-    Event = require("../event.js"),
-    EventEmitter = require('../event-emitter.js'),
-    EventListener = require('../event-listener.js');
+    require('../event-emitter.js');
+    require('../event-listener.js');
 
 describe('General tests', function () {
 
@@ -470,7 +470,7 @@ describe('General tests', function () {
         Event.after('red:save', function(e) {
             count += 2;
         });
-        Event.emit('red:save', null, [subscriber]).status.ok.should.be.true;
+        Event._emit('red:save', null, [subscriber]).status.ok.should.be.true;
         count.should.be.eql(3);
     });
 
@@ -488,7 +488,7 @@ describe('General tests', function () {
         Event.after('red:save', function(e) {
             throw new Error('default after-subscriber shouln\'t get invoked');
         });
-        Event.emit('red:save', null, null, [subscriber]).status.ok.should.be.true;
+        Event._emit('red:save', null, null, [subscriber]).status.ok.should.be.true;
         count.should.be.eql(3);
     });
 
@@ -512,8 +512,24 @@ describe('General tests', function () {
         Event.after('red:save', function(e) {
             throw new Error('default after-subscriber shouln\'t get invoked');
         });
-        Event.emit('red:save', null, [beforeSubscriber], [afterSubscriber]).status.ok.should.be.true;
+        Event._emit('red:save', null, [beforeSubscriber], [afterSubscriber]).status.ok.should.be.true;
         count.should.be.eql(3);
+    });
+
+    it('check ParcelaEvent:selectorsubs gets invoked', function (done) {
+        var count = 0;
+        Event.after('ParcelaEvent:selectorsubs', function(e) {
+            count++;
+        });
+        Event.after('red:save', function() {});
+        Event.after('UI:save', function() {});
+        setTimeout(
+            function() {
+                count.should.be.eql(1);
+                Event.undefEvent('ParcelaEvent:selectorsubs');
+                done();
+            }, 0
+        );
     });
 
 });
