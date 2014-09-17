@@ -2,10 +2,10 @@
 "use strict";
 var expect = require('chai').expect,
 	should = require('chai').should(),
+    Event = require("../event.js");
 
-    Event = require("../event.js"),
-    EventEmitter = require('../event-emitter.js'),
-    EventListener = require('../event-listener.js');
+    require('../event-emitter.js');
+    require('../event-listener.js');
 
 describe('Defined Custom Events', function () {
     // Code to execute before every test.

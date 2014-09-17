@@ -25,8 +25,7 @@
         "url": "https://github.com/Parcela/event/issues"
     },
     "dependencies": {
-        "lang-ext": "Parcela/lang-ext",
-        "ypromise": "*"
+        "lang-ext": "Parcela/lang-ext"
     },
     "devDependencies": {
         "chai": "^1.9.1",
