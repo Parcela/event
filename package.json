@@ -1,14 +1,14 @@
 {
-    "name":"event",
-    "description":"Rich Event system for ultrafast, fexible events",
+    "name": "event",
+    "description": "Rich Event system for ultrafast, fexible events",
     "author": [
         {
             "name": "Marco Asbreuk",
             "email": "marco@itsasbreuk.nl"
         }
     ],
-    "main":"event.js",
-    "keywords":[
+    "main": "event.js",
+    "keywords": [
         "itsa",
         "event",
         "events",
@@ -16,43 +16,42 @@
         "custom-events",
         "parcela"
     ],
-    "license": "New BSD",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Parcela/event"
-	},
-	"bugs": {
-		"url": "https://github.com/Parcela/event/issues"
-	},
-	"dependencies": {
-		"lang-ext": "Parcela/lang-ext",
-		"ypromise": "*"
-	},
-	"devDependencies": {
-		"chai": "^1.9.1",
-		"istanbul": "^0.3.0",
-		"jshint": "^2.5.5",
-		"mocha": "^1.21.4"
-	},
-
-	"engines": {
-		"node": "*"
-	},
-
-	"scripts": {
-		"pretest": "jshint ./*.js",
-		"test": "mocha tests/*.js  && istanbul cover $(which _mocha) -- tests/*.js",
-		"lint": "jshint ./*.js"
-	},
-	"homepage": "http://Parcela.github.io",
-	"maintainers": [
-		{
-			"name": "Daniel Barreiro",
-			"email": "devasatyam@gmail.com"
-    	},
-		{
-			"name": "Marco Asbreuk",
-			"email": "marco@itsasbreuk.nl"
-    	}
-  	]
+    "license": "BSD 3-clause",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Parcela/event"
+    },
+    "bugs": {
+        "url": "https://github.com/Parcela/event/issues"
+    },
+    "dependencies": {
+        "lang-ext": "git://github.com/Parcela/lang-ext.git#v0.0.7",
+        "ypromise": "*"
+    },
+    "devDependencies": {
+        "chai": "^1.9.1",
+        "istanbul": "^0.3.0",
+        "jshint": "^2.5.5",
+        "mocha": "^1.21.4"
+    },
+    "engines": {
+        "node": "*"
+    },
+    "scripts": {
+        "pretest": "jshint ./*.js",
+        "test": "mocha tests/*.js  && istanbul cover $(which _mocha) -- tests/*.js",
+        "lint": "jshint ./*.js"
+    },
+    "homepage": "http://Parcela.github.io",
+    "maintainers": [
+        {
+            "name": "Daniel Barreiro",
+            "email": "devasatyam@gmail.com"
+        },
+        {
+            "name": "Marco Asbreuk",
+            "email": "marco@itsasbreuk.nl"
+        }
+    ],
+    "version": "0.0.7"
 }
