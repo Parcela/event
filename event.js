@@ -37,8 +37,6 @@ require('lang-ext');
     "use strict";
 
     var NAME = '[core-event]: ',
-        PARCELA_EMITTER = 'ParcelaEvent',
-        REGEXP_PARCELA_EMITTER = new RegExp('^'+PARCELA_EMITTER),
         REGEXP_CUSTOMEVENT = /^((?:\w|-)+):((?:\w|-)+)$/,
         REGEXP_WILDCARD_CUSTOMEVENT = /^(?:((?:(?:\w|-)+)|\*):)?((?:(?:\w|-)+)|\*)$/,
         /* REGEXP_WILDCARD_CUSTOMEVENT :
@@ -298,10 +296,7 @@ require('lang-ext');
                 // we cannot just redefine _subs, for it is set as readonly
                 instance._subs.each(
                     function(value, key) {
-                        // remove only subscribers that are not subscribed to systemevents of Parcela (emitterName=='ParcelaEvent'):
-                        if (!REGEXP_PARCELA_EMITTER.test(key)) {
-                            delete instance._subs[key];
-                        }
+                        delete instance._subs[key];
                     }
                 );
             }
@@ -357,6 +352,13 @@ require('lang-ext');
          * @since 0.0.1
          */
         emit: function (emitter, customEvent, payload) {
+            if (typeof emitter === 'string') {
+                // emit is called with signature emit(customEvent, payload)
+                // thus the source-emitter is the Event-instance
+                payload = customEvent;
+                customEvent = emitter;
+                emitter = instance;
+            }
             return this._emit.apply(this, arguments);
         },
 
@@ -400,7 +402,7 @@ require('lang-ext');
          *        have the syntax: `emitterName:eventName`. Wildcard `*` may be used only  for`eventName`.
          *        If `emitterName` should be defined.
          * @param callback {Function} subscriber: will be invoked when the customEvent is called (before any subscribers.
-         *                 Recieves 2 arguments: `Event` and `customEvent`.
+         *                 Recieves 2 arguments: `customEvent` and the `subscriber-object`.
          * @param context {Object} context of the callback
          * @chainable
          * @since 0.0.1
@@ -582,7 +584,7 @@ require('lang-ext');
 
         /**
          * Removes all event-definitions of an emitter, specified by its `emitterName`.
-         * When `emitterName` is not set, ALL event-definitions will be removed, except for the DOM's `UI`-events.
+         * When `emitterName` is not set, ALL event-definitions will be removed.
          *
          * @static
          * @method undefAllEvents
@@ -604,9 +606,7 @@ require('lang-ext');
             else {
                 instance._ce.each(
                     function(value, key, object) {
-                        if ((key.substring(0,3)!=='UI:') && (key.substring(0,13)!=='ParcelaEvent:')) {
-                            delete instance._ce[key];
-                        }
+                        delete instance._ce[key];
                     }
                 );
             }
@@ -636,24 +636,6 @@ require('lang-ext');
         unNotify: function(customEvent) {
             console.log(NAME, 'unNotify '+customEvent);
             delete this._notifiers[customEvent];
-        },
-
-        /**
-         * unNotifies (unsubscribes) the notifiers of all defined customevent-notifications.
-         *
-         * @static
-         * @method unNotifyAll
-         * @since 0.0.1
-        */
-        unNotifyAll: function() {
-            console.log(NAME, 'unNotifyAll');
-            var instance = this;
-            // we cannot just redefine _subs, for it is set as readonly
-            instance._notifiers.each(
-                function(value, key) {
-                    delete instance._notifiers[key];
-                }
-            );
         },
 
         //====================================================================================================
@@ -789,32 +771,18 @@ require('lang-ext');
                 // before subscribing: we might need to activate notifiers --> with defined eventName should also be cleaned up:
                 notifier = instance._notifiers[customEvent];
                 if (notifier) {
-                    notifier.cb.call(notifier.o, customEvent);
+                    notifier.cb.call(notifier.o, customEvent, item);
                     delete instance._notifiers[customEvent];
                 }
                 // check the same for wildcard eventName:
                 customEventWildcardEventName = customEvent.replace(REGEXP_EVENTNAME_WITH_SEMICOLON, ':*');
-                (customEventWildcardEventName !== customEvent) && (notifier=instance._notifiers[customEventWildcardEventName]) && notifier.cb.call(notifier.o, customEvent);
+                if ((customEventWildcardEventName !== customEvent) && (notifier=instance._notifiers[customEventWildcardEventName])) {
+                    notifier.cb.call(notifier.o, customEvent, item);
+                }
             }
 
             console.log(NAME, '_addSubscriber to customEvent: '+customEvent);
             prepend ? hashtable.unshift(item) : hashtable.push(item);
-            // in case of `UI`, other modules (like event-dom) might need to change properties of the subscriber:
-            if (customEvent.substring(0, 3)==='UI:') {
-                /**
-                 * Is emitted whenever an UI-event gets subscribed
-                 * By emitting this event, `event-dom` can catch it and process the filter-selector
-                 *
-                 * @event ParcelaEvent:selectorsubs
-                 * @param customEvent {String}
-                 * @param subscriber {Object}
-                 * @param subscriber.o {Object} context for the callbackFn
-                 * @param subscriber.cb {Object} callbackFn
-                 * @param subscriber.f {String|Function} filterfunction or selector
-                 * @since 0.1
-                **/
-                instance.emit(PARCELA_EMITTER+':selectorsubs', {customEvent: customEvent, subscriber: item});
-            }
 
             return {
                 detach: function() {
@@ -892,16 +860,7 @@ require('lang-ext');
                 allSubscribers = instance._subs,
                 customEventDefinition, extract, emitterName, eventName, subs, wildcard_named_subs,
                 named_wildcard_subs, wildcard_wildcard_subs, e;
-            if (typeof emitter === 'string') {
-                // emit is called with signature emit(customEvent, payload)
-                // thus the source-emitter is the Event-instance
-                preProcessor = afterSubscribers;
-                afterSubscribers = beforeSubscribers;
-                beforeSubscribers = payload;
-                payload = customEvent;
-                customEvent = emitter;
-                emitter = instance;
-            }
+
             (customEvent.indexOf(':') !== -1) || (customEvent = emitter._emitterName+':'+customEvent);
             console.log(NAME, 'customEvent.emit: '+customEvent);
 
@@ -1092,7 +1051,7 @@ require('lang-ext');
                 hashtable = eventSubscribers && eventSubscribers[before ? 'b' : 'a'],
                 i, subscriber, beforeUsed, afterUsed;
             // remove only subscribers that are not subscribed to systemevents of Parcela (emitterName=='ParcelaEvent'):
-            if (hashtable && !REGEXP_PARCELA_EMITTER.test(customEvent)) {
+            if (hashtable) {
                 // unfortunatly we cannot search by reference, because the array has composed objects
                 // also: can't use native Array.forEach: removing items within its callback change the array
                 // during runtime, making it to skip the next item of the one that's being removed
