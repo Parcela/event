@@ -59,8 +59,6 @@ describe('Defined Custom Events', function () {
         Event.defineEvent('red4b:save2');
         (Object.keys(Event._ce).length===(count+4)).should.be.true;
         Event.undefAllEvents();
-        (Object.keys(Event._ce).length===1).should.be.true;
-        Event.undefEvent('UI:save');
         (Object.keys(Event._ce).length===0).should.be.true;
     });
 
