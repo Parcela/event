@@ -516,20 +516,4 @@ describe('General tests', function () {
         expect(count).to.eql(3);
     });
 
-    it('check ParcelaEvent:selectorsubs gets invoked', function (done) {
-        var count = 0;
-        Event.after('ParcelaEvent:selectorsubs', function(e) {
-            count++;
-        });
-        Event.after('red:save', function() {});
-        Event.after('UI:save', function() {});
-        setTimeout(
-            function() {
-                expect(count).to.eql(1);
-                Event.undefEvent('ParcelaEvent:selectorsubs');
-                done();
-            }, 0
-        );
-    });
-
 });
