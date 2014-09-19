@@ -105,6 +105,11 @@ require('lang-ext');
                 filter = null;
                 context = null;
             }
+            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
+                // filter was not set, instead `prepend` is set at this position
+                prepend = filter;
+                filter = null;
+            }
             return this._addMultiSubs(context, false, customEvent, callback, filter, prepend);
         },
 
@@ -141,6 +146,11 @@ require('lang-ext');
                 prepend = context;
                 filter = null;
                 context = null;
+            }
+            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
+                // filter was not set, instead `prepend` is set at this position
+                prepend = filter;
+                filter = null;
             }
             return this._addMultiSubs(context, true, customEvent, callback, filter, prepend);
         },
@@ -352,6 +362,7 @@ require('lang-ext');
          * @since 0.0.1
          */
         emit: function (emitter, customEvent, payload) {
+            var instance = this;
             if (typeof emitter === 'string') {
                 // emit is called with signature emit(customEvent, payload)
                 // thus the source-emitter is the Event-instance
@@ -359,7 +370,7 @@ require('lang-ext');
                 customEvent = emitter;
                 emitter = instance;
             }
-            return this._emit.apply(this, arguments);
+            return instance._emit(emitter, customEvent, payload);
         },
 
         /**
@@ -524,6 +535,11 @@ require('lang-ext');
                 filter = null;
                 context = null;
             }
+            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
+                // filter was not set, instead `prepend` is set at this position
+                prepend = filter;
+                filter = null;
+            }
             handler = instance._addMultiSubs(context, false, customEvent, wrapperFn, filter, prepend);
             return handler;
         },
@@ -577,6 +593,11 @@ require('lang-ext');
                 prepend = context;
                 filter = null;
                 context = null;
+            }
+            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
+                // filter was not set, instead `prepend` is set at this position
+                prepend = filter;
+                filter = null;
             }
             handler = instance._addMultiSubs(context, true, customEvent, wrapperFn, filter, prepend);
             return handler;
@@ -739,11 +760,6 @@ require('lang-ext');
             if (!extract) {
                 console.error(NAME, 'subscribe-error: eventname does not match pattern');
                 return;
-            }
-            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
-                // filter was not set, instead `prepend` is set at this position
-                prepend = filter;
-                filter = null;
             }
             // if extract[1] is undefined, a simple customEvent is going to subscribe (without :)
             // therefore: recomposite customEvent:

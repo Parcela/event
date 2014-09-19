@@ -17,7 +17,6 @@ describe('General tests', function () {
     afterEach(function() {
         Event.detachAll();
         Event.undefAllEvents();
-        Event.unNotifyAll();
     });
 
     it('consistency eventobject', function () {
@@ -437,19 +436,6 @@ describe('General tests', function () {
         expect(count).to.eql(0);
     });
 
-    it('check unNotifyAll()', function () {
-        var count = 0;
-        Event.notify('red:save', function(ce) {
-            count++;
-        }, Event);
-        Event.notify('red:*', function(ce) {
-            count++;
-        }, Event);
-        Event.unNotifyAll();
-        Event.emit('red:save');
-        expect(count).to.eql(0);
-    });
-
     it('check notify() when not needed', function () {
         Event.notify('red:save', function(ce) {}, Event);
         Event.emit('red:save');
@@ -470,7 +456,7 @@ describe('General tests', function () {
         Event.after('red:save', function(e) {
             count += 2;
         });
-        Event._emit('red:save', null, [subscriber]).status.ok.should.be.true;
+        Event._emit(Event, 'red:save', null, [subscriber]).status.ok.should.be.true;
         expect(count).to.eql(3);
     });
 
@@ -488,7 +474,7 @@ describe('General tests', function () {
         Event.after('red:save', function(e) {
             throw new Error('default after-subscriber shouln\'t get invoked');
         });
-        Event._emit('red:save', null, null, [subscriber]).status.ok.should.be.true;
+        Event._emit(Event, 'red:save', null, null, [subscriber]).status.ok.should.be.true;
         expect(count).to.eql(3);
     });
 
@@ -512,7 +498,7 @@ describe('General tests', function () {
         Event.after('red:save', function(e) {
             throw new Error('default after-subscriber shouln\'t get invoked');
         });
-        Event._emit('red:save', null, [beforeSubscriber], [afterSubscriber]).status.ok.should.be.true;
+        Event._emit(Event, 'red:save', null, [beforeSubscriber], [afterSubscriber]).status.ok.should.be.true;
         expect(count).to.eql(3);
     });
 
