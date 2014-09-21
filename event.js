@@ -95,22 +95,7 @@ require('lang-ext');
         */
         after: function(customEvent, callback, context, filter, prepend) {
             console.log(NAME, 'add after subscriber to: '+customEvent);
-            if ((typeof context === 'string') || (typeof context === 'function')) {
-                prepend = filter;
-                filter = context;
-                context = null;
-            }
-            else if (typeof context === 'boolean') {
-                prepend = context;
-                filter = null;
-                context = null;
-            }
-            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
-                // filter was not set, instead `prepend` is set at this position
-                prepend = filter;
-                filter = null;
-            }
-            return this._addMultiSubs(context, false, customEvent, callback, filter, prepend);
+            return this._addMultiSubs(false, customEvent, callback, context, filter, prepend);
         },
 
         /**
@@ -137,22 +122,7 @@ require('lang-ext');
         */
         before: function(customEvent, callback, context, filter, prepend) {
             console.log(NAME, 'add before subscriber to: '+customEvent);
-            if ((typeof context === 'string') || (typeof context === 'function')) {
-                prepend = filter;
-                filter = context;
-                context = null;
-            }
-            else if (typeof context === 'boolean') {
-                prepend = context;
-                filter = null;
-                context = null;
-            }
-            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
-                // filter was not set, instead `prepend` is set at this position
-                prepend = filter;
-                filter = null;
-            }
-            return this._addMultiSubs(context, true, customEvent, callback, filter, prepend);
+            return this._addMultiSubs(true, customEvent, callback, context, filter, prepend);
         },
 
         /**
@@ -525,22 +495,7 @@ require('lang-ext');
                 handler._detached = true;
                 setTimeout(function() {handler.detach();}, 0);
             };
-            if ((typeof context === 'string') || (typeof context === 'function')) {
-                prepend = filter;
-                filter = context;
-                context = null;
-            }
-            else if (typeof context === 'boolean') {
-                prepend = context;
-                filter = null;
-                context = null;
-            }
-            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
-                // filter was not set, instead `prepend` is set at this position
-                prepend = filter;
-                filter = null;
-            }
-            handler = instance._addMultiSubs(context, false, customEvent, wrapperFn, filter, prepend);
+            handler = instance._addMultiSubs(false, customEvent, wrapperFn, context, filter, prepend);
             return handler;
         },
 
@@ -584,22 +539,7 @@ require('lang-ext');
                 handler._detached = true;
                 setTimeout(function() {handler.detach();}, 0);
             };
-            if ((typeof context === 'string') || (typeof context === 'function')) {
-                prepend = filter;
-                filter = context;
-                context = null;
-            }
-            else if (typeof context === 'boolean') {
-                prepend = context;
-                filter = null;
-                context = null;
-            }
-            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
-                // filter was not set, instead `prepend` is set at this position
-                prepend = filter;
-                filter = null;
-            }
-            handler = instance._addMultiSubs(context, true, customEvent, wrapperFn, filter, prepend);
+            handler = instance._addMultiSubs(true, customEvent, wrapperFn, context, filter, prepend);
             return handler;
         },
 
@@ -681,11 +621,11 @@ require('lang-ext');
          *
          * @static
          * @method _addMultiSubs
-         * @param listener {Object} Object that creates the subscriber (and will be listening by `listener.after(...)`)
          * @param before {Boolean} whether the subscriber is a `before` subscriber. On falsy, an `after`-subscriber is assumed.
          * @param customEvent {Array} Array of Strings. customEvent should conform the syntax: `emitterName:eventName`, wildcard `*`
          *         may be used for both `emitterName` as well as only `eventName`, in which case 'UI' will become the emitterName.
          * @param callback {Function} subscriber to the event.
+         * @param listener {Object} Object that creates the subscriber (and will be listening by `listener.after(...)`)
          * @param [filter] {String|Function} to filter the event.
          *        Use a String if you want to filter DOM-events by a `selector`
          *        Use a function if you want to filter by any other means. If the function returns a trully value, the
@@ -696,9 +636,24 @@ require('lang-ext');
          * @private
          * @since 0.0.1
         */
-        _addMultiSubs: function(listener, before, customEvent, callback, filter, prepend) {
+        _addMultiSubs: function(before, customEvent, callback, listener, filter, prepend) {
             console.log(NAME, '_addMultiSubs');
             var instance = this;
+            if ((typeof listener === 'string') || (typeof listener === 'function')) {
+                prepend = filter;
+                filter = listener;
+                listener = null;
+            }
+            else if (typeof listener === 'boolean') {
+                prepend = listener;
+                filter = null;
+                listener = null;
+            }
+            if ((typeof filter==='boolean') || (typeof filter===undefined) || (typeof filter===null)) {
+                // filter was not set, instead `prepend` is set at this position
+                prepend = filter;
+                filter = null;
+            }
             if (!Array.isArray(customEvent)) {
                 return instance._addSubscriber(listener, before, customEvent, callback, filter, prepend);
             }
@@ -875,7 +830,7 @@ require('lang-ext');
                 allCustomEvents = instance._ce,
                 allSubscribers = instance._subs,
                 customEventDefinition, extract, emitterName, eventName, subs, wildcard_named_subs,
-                named_wildcard_subs, wildcard_wildcard_subs, e;
+                named_wildcard_subs, wildcard_wildcard_subs, e, invokeSubs;
 
             (customEvent.indexOf(':') !== -1) || (customEvent = emitter._emitterName+':'+customEvent);
             console.log(NAME, 'customEvent.emit: '+customEvent);
@@ -898,51 +853,15 @@ require('lang-ext');
                 e = payload;
             }
             else {
-                e = Object.create(instance._defaultEventObj, {
-                    target: {
-                        configurable: false,
-                        enumerable: true,
-                        writable: true, // cautious: needs to be writable: event-dom resets e.target
-                        value: emitter
-                    },
-                    type: {
-                        configurable: false,
-                        enumerable: true,
-                        writable: false,
-                        value: eventName
-                    },
-                    emitter: {
-                        configurable: false,
-                        enumerable: true,
-                        writable: false,
-                        value: emitterName
-                    },
-                    status: {
-                        configurable: false,
-                        enumerable: true,
-                        writable: false,
-                        value: {}
-                    },
-                    _unPreventable: {
-                        configurable: false,
-                        enumerable: false,
-                        writable: false,
-                        value: customEventDefinition && customEventDefinition.unPreventable
-                    },
-                    _unHaltable: {
-                        configurable: false,
-                        enumerable: false,
-                        writable: false,
-                        value: customEventDefinition && customEventDefinition.unHaltable
-                    },
-                    _unRenderPreventable: {
-                        configurable: false,
-                        enumerable: false,
-                        writable: false,
-                        value: customEventDefinition && customEventDefinition.unRenderPreventable
-                    }
-                });
+                e = Object.create(instance._defaultEventObj);
+                e.target = emitter;
+                e.type = eventName;
+                e.emitter = emitterName;
+                e.status = {};
                 if (customEventDefinition) {
+                    e._unPreventable = customEventDefinition.unPreventable;
+                    e._unHaltable = customEventDefinition.unHaltable;
+                    e._unRenderPreventable = customEventDefinition.unRenderPreventable;
                     customEventDefinition.unSilencable && (e.status.unSilencable = true);
                 }
                 if (payload) {
@@ -957,13 +876,11 @@ require('lang-ext');
                 }
             }
             if (beforeSubscribers) {
-                instance._invokeSubs(e, beforeSubscribers, false, true, preProcessor);
+                instance._invokeSubs(e, false, true, preProcessor, {b: beforeSubscribers});
             }
             else {
-                subs && subs.b && instance._invokeSubs(e, subs.b, true, true);
-                named_wildcard_subs && named_wildcard_subs.b && instance._invokeSubs(e, named_wildcard_subs.b, true, true);
-                wildcard_named_subs && wildcard_named_subs.b && instance._invokeSubs(e, wildcard_named_subs.b, true, true);
-                wildcard_wildcard_subs && wildcard_wildcard_subs.b && instance._invokeSubs(e, wildcard_wildcard_subs.b, true, true);
+                invokeSubs = instance._invokeSubs.bind(instance, e, true, true, false);
+                [subs, named_wildcard_subs, wildcard_named_subs, wildcard_wildcard_subs].forEach(invokeSubs);
             }
             e.status.ok = !e.status.halted && !e.status.defaultPrevented;
             // in case any subscriber changed e.target inside its filter (event-dom does this),
@@ -978,13 +895,11 @@ require('lang-ext');
 
             if (e.status.ok) {
                 if (afterSubscribers) {
-                    instance._invokeSubs(e, afterSubscribers, false, false, preProcessor);
+                    instance._invokeSubs(e, false, false, preProcessor, {a: afterSubscribers});
                 }
                 else {
-                    subs && subs.a && instance._invokeSubs(e, subs.a, true);
-                    named_wildcard_subs && named_wildcard_subs.a && instance._invokeSubs(e, named_wildcard_subs.a, true);
-                    wildcard_named_subs && wildcard_named_subs.a && instance._invokeSubs(e, wildcard_named_subs.a, true);
-                    wildcard_wildcard_subs && wildcard_wildcard_subs.a && instance._invokeSubs(e, wildcard_wildcard_subs.a, true);
+                    invokeSubs = instance._invokeSubs.bind(instance, e, true, false, false);
+                    [subs, named_wildcard_subs, wildcard_named_subs, wildcard_wildcard_subs].forEach(invokeSubs);
                 }
                 if (!e.silent) {
                     // in case any subscriber changed e.target inside its filter (event-dom does this),
@@ -1008,6 +923,9 @@ require('lang-ext');
          *
          * @method _invokeSubs
          * @param e {Object} event-object
+         * @param [checkFilter] {Boolean}
+         * @param [before] {Boolean} whether it concerns before subscribers
+         * @param [checkFilter] {Boolean}
          * @param subscribers {Array} contains subscribers (objects) with these members:
          * <ul>
          *     <li>subscriber.o {Object} context of the callback</li>
@@ -1018,14 +936,15 @@ require('lang-ext');
          *     <li>subscriber.n {DOM-node} highest dom-node that acts as the container for delegation.
          *         only when event-dom is active and there are filter-selectors</li>
          * </ul>
-         * @param [before] {Boolean} whether it concerns before subscribers
          * @private
          * @since 0.0.1
          */
-        _invokeSubs: function (e, subscribers, checkFilter, before, preProcessor) { // subscribers, plural
+        _invokeSubs: function (e, checkFilter, before, preProcessor, subscribers) { // subscribers, plural
             console.log(NAME, '_invokeSubs');
-            if (!e.status.halted && !e.silent) {
-                subscribers.some(function(subscriber) {
+            var subs;
+            if (subscribers && !e.status.halted && !e.silent) {
+                subs = before ? subscribers.b : subscribers.a;
+                subs && subs.some(function(subscriber) {
                     console.log(NAME, '_invokeSubs checking invokation for single subscriber');
                     if (preProcessor && preProcessor(subscriber, e)) {
                         return true;
