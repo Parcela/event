@@ -1,118 +1,113 @@
 "use strict";
 
 /**
- * Extends the Event-instance by adding the method `Emitter` to it.
- * The `Emitter-method` returns an object that should be merged into any Class-instance or object you
- * want to extend with the emit-methods, so the appropriate methods can be invoked on the instance.
- *
- * <i>Copyright (c) 2014 Parcela - https://github.com/Parcela</i>
- * New BSD License - https://github.com/ItsAsbreuk/itsa-library/blob/master/LICENSE
- *
- * Should be called using  the provided `extend`-method like this:
- * @example
- *     var Event = require('event');<br>
- *     var EventEmitter = require('event-emitter');<br>
- *     EventEmitter.mergeInto(Event);
- *
- * @module event
- * @submodule event-emitter
- * @class Event.Emitter
- * @since 0.0.1
+Adds methods to simplify emitting custom events.
+
+It can be merged into any class or object instance that needs to emit custom events
+@example
+
+	myObject.merge(Parcela.Event.Emitter);
+	
+	MyClass.mergePrototypes(Parcela.Event.Emitter);
+	
+	
+@module event
+@submodule event-emitter
+@class Emitter
 */
 
-var NAME = '[event-emitter]: ',
-    REGEXP_EMITTER = /^(\w|-)+$/,
-    Event = require('event');
+var Event = require('event');
 
-Event.Emitter = function(emitterName) {
-    var composeCustomevent = function(eventName) {
-            return emitterName+':'+eventName;
-        },
-        newEmitter;
-    if (!REGEXP_EMITTER.test(emitterName)) {
-        console.error(NAME, 'Emitter invoked with invalid argument: you must specify a valid emitterName');
-        return;
-    }
-    newEmitter = {
-        /**
-         * Defines a CustomEvent. If the eventtype already exists, it will not be overridden,
-         * unless you force to assign with `.forceAssign()`
-         *
-         * The returned object comes with 4 methods which can be invoked chainable:
-         *
-         * <ul>
-         *     <li>defaultFn() --> the default-function of the event</li>
-         *     <li>preventedFn() --> the function that should be invoked when the event is defaultPrevented</li>
-         *     <li>forceAssign() --> overrides any previous definition</li>
-         *     <li>unHaltable() --> makes the customEvent cannot be halted</li>
-         *     <li>unPreventable() --> makes the customEvent's defaultFn cannot be prevented</li>
-         *     <li>unSilencable() --> makes that emitters cannot make this event to perform silently (using e.silent)</li>
-         *     <li>unRenderPreventable() --> makes that the customEvent's render cannot be prevented</li>
-         *     <li>noRender() --> prevents this customEvent from render the dom. Overrules unRenderPreventable()</li>
-         * </ul>
-         *
-         * @method defineEvent
-         * @param eventName {String} name of the customEvent, without `emitterName`.
-         *        The final event that will be created has the syntax: `emitterName:eventName`,
-         *        where `emitterName:` is automaticly prepended.
-         * @return {Object} with extra methods that can be chained:
-         * <ul>
-         *      <li>unPreventable() --> makes the customEvent's defaultFn cannot be prevented</li>
-         *      <li>unRenderPreventable() --> makes that the customEvent's render cannot be prevented</li>
-         *      <li>forceAssign() --> overrides any previous definition</li>
-         *      <li>defaultFn() --> the default-function of the event</li>
-         *      <li>preventedFn() --> the function that should be invoked when the event is defaultPrevented</li>
-         * </ul>
-         * @since 0.0.1
-         */
-        defineEvent: function (eventName) {
-            return Event.defineEvent(composeCustomevent(eventName));
-        },
 
-        /**
-         * Emits the event `eventName` on behalf of the instance holding this method.
-         *
-         * @method emit
-         * @param eventName {String} name of the event to be sent (available as e.type)
-         *        you could pass a customEvent here 'emitterName:eventName', which would
-         *        overrule the `instance-emitterName`
-         * @param payload {Object} extra payload to be added to the event-object
-         * @return {Promise}
-         * <ul>
-         *     <li>on success: returnValue {Any} of the defaultFn</li>
-         *     <li>on error: reason {Any} Either: description 'event was halted', 'event was defaultPrevented' or the returnvalue of the preventedFn</li>
-         * </ul>
-         * @since 0.0.1
-         */
-        emit: function(eventName, payload) {
-            return Event.emit(this, eventName, payload);
-        },
+module.exports = {
+	/**
+	Default `emitterName` to be prepended to events on emision when no explicit emitterName is given.
+	
+		// Emit with full name:
+		this.emit('myName:myCustomEvent', payload);
+		
+		// Once this is done
+		this.emitterName = 'myName';
+		
+		// Later calls can be simplified to:
+		this.emit('myCustomEvent', payload);
+		
+		
+	
+	@property emitterName
+	@type String
+	@default ''
+	*/
+	emitterName: '',
 
-        /**
-         * Removes all event-definitions of the instance holding this method.
-         *
-         * @method undefAllEvents
-         * @since 0.0.1
-         */
-        undefAllEvents: function () {
-            Event.undefEvent(emitterName);
-        },
+	/** 
+	Prepends the `emitterName` to the event name if it was not explicitely given.
+	
+	@method _fullEventName
+	@param eventName {String} full or partial event name
+	@return {String} full event name
+	@private
+	*/
+	_fullEventName: function (eventName) {
+		return eventName.indexOf(':') === -1 ? this.emitterName + ':' + eventName : eventName;
+	},
 
-        /**
-         * Removes the event-definition of the specified customEvent.
-         *
-         * @method undefEvent
-         * @param eventName {String} name of the customEvent, without `emitterName`.
-         *        The calculated customEvent which will be undefined, will have the syntax: `emitterName:eventName`.
-         *        where `emitterName:` is automaticly prepended.
-         * @since 0.0.1
-         */
-        undefEvent: function (eventName) {
-            Event.undefEvent(composeCustomevent(eventName));
-        }
+	/**
+	Defines a CustomEvent. If the eventtype already exists, it will not be overridden,
+	unless you force to assign with `.forceAssign()`
 
-    };
-    // register the emittername:
-    Event.defineEmitter(newEmitter, emitterName);
-    return newEmitter;
+	The returned object provides the following setter methods:
+
+	* defaultFn() --> the default-function of the event
+	* preventedFn() --> the function that should be invoked when the event is defaultPrevented
+	* forceAssign() --> overrides any previous definition
+	* unHaltable() --> makes the customEvent cannot be halted
+	* unPreventable() --> makes the customEvent's defaultFn cannot be prevented
+	* unSilencable() --> makes that emitters cannot make this event to perform silently (using e.silent)
+	* unRenderPreventable() --> makes that the customEvent's render cannot be prevented
+	* noRender() --> prevents this customEvent from render the dom. Overrules unRenderPreventable()
+
+	@method defineEvent
+	@param eventName {String} name of the customEvent.  
+		If `emitterName` is set, only the eventType needs to be specified.
+	@return {Object} with extra methods that can be chained:
+
+	*/
+	defineEvent: function (eventName) {
+		return Event.defineEvent(this._fullEventName(eventName));
+	},
+
+	/**
+	Emits the event `eventName` on behalf of the instance holding this method.
+	
+	@method emit
+	@param eventName {String} name of the event.
+		If `emitterName` is set, only the `eventName` can be given.
+	@param payload {Object} extra payload to be added to the event-object
+	@return {Object} eventObject.
+	*/
+	emit: function (eventName, payload) {
+		return Event.emit(this, this._fullEventName(eventName), payload);
+	},
+
+	/* *
+	Removes all event-definitions of the instance holding this method.
+	
+	@method undefAllEvents
+	*/
+//	undefAllEvents: function (emitterName) {
+//		Event.undefAllEvent(emitterName || this.emitterName);
+//	},
+
+	/**
+	Removes the event-definition of the specified customEvent.
+
+	@method undefEvent
+	@param eventName {String} name of the customEvent, without `emitterName`.
+		   The calculated customEvent which will be undefined, will have the syntax: `emitterName:eventName`.
+		   where `emitterName:` is automaticly prepended.
+	 */
+	undefEvent: function (eventName) {
+		Event.undefEvent(this._fullEventName(eventName));
+	}
 };
